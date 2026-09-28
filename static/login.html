@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ingresar — Control de Lavandería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EFF2EF;
+    --surface: #FFFFFF;
+    --ink: #1B2430;
+    --muted: #5B6B73;
+    --line: #DDE3E0;
+    --en-uso: #2B6CB0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; min-height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .tarjeta {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 360px;
+  }
+  .logo { text-align: center; font-size: 2rem; margin-bottom: 6px; }
+  h1 {
+    font-family: "Outfit", sans-serif;
+    font-size: 1.2rem; text-align: center; margin: 0 0 4px;
+  }
+  .subtitulo { text-align: center; font-size: 0.82rem; color: var(--muted); margin-bottom: 24px; }
+
+  .campo { margin-bottom: 14px; }
+  .campo label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; }
+  .campo input {
+    width: 100%; padding: 11px 12px;
+    border: 1px solid var(--line); border-radius: 10px;
+    font-size: 0.92rem; font-family: inherit;
+    background: var(--bg);
+  }
+  .campo input:focus { outline: 2px solid var(--en-uso); outline-offset: 1px; }
+
+  button {
+    width: 100%; padding: 12px; margin-top: 8px;
+    border: none; border-radius: 10px;
+    background: var(--en-uso); color: white;
+    font-size: 0.92rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  button:disabled { opacity: 0.6; cursor: default; }
+
+  .error {
+    background: #FCEBE0; color: #E8590C;
+    padding: 10px 12px; border-radius: 8px;
+    font-size: 0.82rem; margin-bottom: 14px;
+    display: none;
+  }
+  .error.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="tarjeta">
+  <div class="logo">🧺</div>
+  <h1>Control de Lavandería</h1>
+  <div class="subtitulo">Ingresa para ver el estado de las máquinas</div>
+
+  <div class="error" id="error"></div>
+
+  <form id="form-login">
+    <div class="campo">
+      <label>Usuario</label>
+      <input type="text" id="username" autocomplete="username" required>
+    </div>
+    <div class="campo">
+      <label>Contraseña</label>
+      <input type="password" id="password" autocomplete="current-password" required>
+    </div>
+    <button type="submit" id="btn-entrar">Ingresar</button>
+  </form>
+</div>
+
+<script>
+document.getElementById("form-login").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("btn-entrar");
+  const errorDiv = document.getElementById("error");
+  errorDiv.classList.remove("show");
+  btn.disabled = true;
+  btn.textContent = "Ingresando...";
+
+  try {
+    const resp = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value,
+      }),
+    });
+    if (resp.ok) {
+      window.location.href = "/";
+    } else {
+      const data = await resp.json().catch(() => ({}));
+      errorDiv.textContent = data.detail || "Usuario o contraseña incorrectos";
+      errorDiv.classList.add("show");
+      btn.disabled = false;
+      btn.textContent = "Ingresar";
+    }
+  } catch (err) {
+    errorDiv.textContent = "No se pudo conectar con el servidor.";
+    errorDiv.classList.add("show");
+    btn.disabled = false;
+    btn.textContent = "Ingresar";
+  }
+});
+</script>
+</body>
+</html>

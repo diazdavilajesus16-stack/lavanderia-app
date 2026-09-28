@@ -1,0 +1,4 @@
+lavanderia.db
+session_secret.key
+__pycache__/
+*.pyc
