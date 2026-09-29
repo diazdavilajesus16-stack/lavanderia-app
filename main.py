@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Sistema de Control de Lavandería - Autoservicio
-MVP: control manual de inicio de ciclo (sin sensores), con actualización
-en tiempo real vía WebSocket, cambio automático de estado al terminar el ciclo,
-y login con roles (dueño / personal).
+Backend: API REST + WebSocket, login con roles, monitor automático de ciclos,
+historial de ciclos, reportes y configuración.
 """
 import asyncio
 import json
@@ -14,7 +13,7 @@ from typing import List
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
@@ -22,21 +21,13 @@ from sqlalchemy.orm import Session
 
 from database import (
     init_db, get_db, SessionLocal, Maquina, CicloSesion, TipoMaquina, EstadoMaquina,
-    Usuario, RolUsuario,
+    Usuario, RolUsuario, Configuracion,
 )
 from auth import hash_password, verificar_password
 
 NUM_LAVADORAS = 19
 NUM_SECADORAS = 19
-DURACION_DEFAULT_LAVADORA = 35   # minutos
-DURACION_DEFAULT_SECADORA = 45   # minutos
 
-# Clave para firmar las cookies de sesión.
-# En Render (o cualquier hosting con disco no permanente) conviene fijarla como
-# variable de entorno SESSION_SECRET, para que no cambie en cada reinicio y la
-# gente no tenga que volver a iniciar sesión todo el tiempo.
-# Si no existe esa variable (uso local en Windows), se genera una vez y se
-# guarda en un archivo local.
 ARCHIVO_CLAVE = "session_secret.key"
 if os.environ.get("SESSION_SECRET"):
     SECRET_KEY = os.environ["SESSION_SECRET"]
@@ -48,22 +39,14 @@ else:
     with open(ARCHIVO_CLAVE, "w") as f:
         f.write(SECRET_KEY)
 
-# Usuario dueño por defecto, creado solo si todavía no existe ningún usuario.
 USUARIO_DEFAULT = "admin"
 PASSWORD_DEFAULT = "lavanderia123"
 
 app = FastAPI(title="Control de Lavandería")
-
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, same_site="lax")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
-# ---------- Gestión de conexiones WebSocket ----------
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
@@ -100,6 +83,16 @@ def get_sesion_activa(db: Session, maquina_id: int):
     )
 
 
+def get_configuracion(db: Session) -> Configuracion:
+    config = db.query(Configuracion).first()
+    if not config:
+        config = Configuracion(id=1)
+        db.add(config)
+        db.commit()
+        db.refresh(config)
+    return config
+
+
 def estado_completo_maquinas(db: Session):
     maquinas = db.query(Maquina).order_by(Maquina.tipo, Maquina.numero).all()
     resultado = []
@@ -111,7 +104,6 @@ def estado_completo_maquinas(db: Session):
 
 # ---------- Autenticación ----------
 def usuario_actual(request: Request, db: Session = Depends(get_db)) -> Usuario:
-    """Dependencia para endpoints REST: exige sesión activa, si no hay -> 401."""
     user_id = request.session.get("user_id")
     if not user_id:
         raise HTTPException(status_code=401, detail="No has iniciado sesión")
@@ -128,7 +120,6 @@ def solo_dueno(usuario: Usuario = Depends(usuario_actual)) -> Usuario:
 
 
 def usuario_actual_ws(websocket: WebSocket, db: Session) -> Usuario | None:
-    """Misma verificación que usuario_actual, pero para la conexión WebSocket."""
     session = websocket.scope.get("session", {})
     user_id = session.get("user_id")
     if not user_id:
@@ -136,11 +127,11 @@ def usuario_actual_ws(websocket: WebSocket, db: Session) -> Usuario | None:
     return db.query(Usuario).filter(Usuario.id == user_id).first()
 
 
-# ---------- Esquemas de entrada ----------
+# ---------- Esquemas ----------
 class IniciarCicloRequest(BaseModel):
     cliente_nombre: str
     cliente_telefono: str | None = None
-    duracion_minutos: int | None = None  # si no se envía, se usa el default según tipo
+    duracion_minutos: int | None = None
 
 
 class TelefonoRequest(BaseModel):
@@ -159,14 +150,19 @@ class NuevoUsuarioRequest(BaseModel):
     rol: RolUsuario
 
 
-# ---------- Eventos de arranque ----------
+class ConfiguracionRequest(BaseModel):
+    duracion_default_lavadora: int
+    duracion_default_secadora: int
+    nombre_negocio: str
+
+
+# ---------- Arranque ----------
 @app.on_event("startup")
 def startup_event():
     init_db()
     db = SessionLocal()
     try:
-        existentes = db.query(Maquina).count()
-        if existentes == 0:
+        if db.query(Maquina).count() == 0:
             for i in range(1, NUM_LAVADORAS + 1):
                 db.add(Maquina(tipo=TipoMaquina.lavadora, numero=i, estado=EstadoMaquina.disponible))
             for i in range(1, NUM_SECADORAS + 1):
@@ -183,6 +179,8 @@ def startup_event():
             db.commit()
             print(f"[AVISO] Usuario creado por defecto -> usuario: '{USUARIO_DEFAULT}' "
                   f"contraseña: '{PASSWORD_DEFAULT}'. Cámbiala apenas puedas.")
+
+        get_configuracion(db)
     finally:
         db.close()
 
@@ -190,8 +188,6 @@ def startup_event():
 
 
 async def monitor_ciclos():
-    """Revisa cada pocos segundos si algún ciclo en curso ya terminó,
-    y si es así cambia el estado de la máquina a 'finalizado' y avisa por WebSocket."""
     while True:
         await asyncio.sleep(3)
         db = SessionLocal()
@@ -203,13 +199,11 @@ async def monitor_ciclos():
                 sesion = get_sesion_activa(db, m.id)
                 if sesion and sesion.hora_fin_estimada <= ahora:
                     m.estado = EstadoMaquina.finalizado
+                    sesion.hora_finalizado = ahora
                     cambios = True
             if cambios:
                 db.commit()
-                await manager.broadcast({
-                    "evento": "actualizacion",
-                    "maquinas": estado_completo_maquinas(db),
-                })
+                await manager.broadcast({"evento": "actualizacion", "maquinas": estado_completo_maquinas(db)})
         finally:
             db.close()
 
@@ -235,7 +229,7 @@ def me(usuario: Usuario = Depends(usuario_actual)):
     return usuario.to_dict()
 
 
-# ---------- Gestión de usuarios (solo dueño) ----------
+# ---------- Usuarios (solo dueño) ----------
 @app.get("/api/usuarios")
 def listar_usuarios(db: Session = Depends(get_db), _: Usuario = Depends(solo_dueno)):
     return [u.to_dict() for u in db.query(Usuario).order_by(Usuario.id).all()]
@@ -268,7 +262,24 @@ def eliminar_usuario(usuario_id: int, db: Session = Depends(get_db), actual: Usu
     return {"ok": True}
 
 
-# ---------- Endpoints REST de máquinas (protegidos: requieren sesión) ----------
+# ---------- Configuración (solo dueño edita; todos pueden leer) ----------
+@app.get("/api/configuracion")
+def obtener_configuracion(db: Session = Depends(get_db), _: Usuario = Depends(usuario_actual)):
+    return get_configuracion(db).to_dict()
+
+
+@app.post("/api/configuracion")
+def actualizar_configuracion(req: ConfiguracionRequest, db: Session = Depends(get_db),
+                              _: Usuario = Depends(solo_dueno)):
+    config = get_configuracion(db)
+    config.duracion_default_lavadora = req.duracion_default_lavadora
+    config.duracion_default_secadora = req.duracion_default_secadora
+    config.nombre_negocio = req.nombre_negocio.strip() or "Control de Lavandería"
+    db.commit()
+    return {"ok": True, "configuracion": config.to_dict()}
+
+
+# ---------- Máquinas ----------
 @app.get("/api/maquinas")
 def listar_maquinas(db: Session = Depends(get_db), _: Usuario = Depends(usuario_actual)):
     return estado_completo_maquinas(db)
@@ -283,9 +294,9 @@ async def iniciar_ciclo(maquina_id: int, req: IniciarCicloRequest, db: Session =
     if maquina.estado not in (EstadoMaquina.disponible,):
         raise HTTPException(status_code=400, detail="La máquina no está disponible")
 
-    duracion = req.duracion_minutos or (
-        DURACION_DEFAULT_LAVADORA if maquina.tipo == TipoMaquina.lavadora else DURACION_DEFAULT_SECADORA
-    )
+    config = get_configuracion(db)
+    default = config.duracion_default_lavadora if maquina.tipo == TipoMaquina.lavadora else config.duracion_default_secadora
+    duracion = req.duracion_minutos or default
     ahora = datetime.utcnow()
     sesion = CicloSesion(
         maquina_id=maquina.id,
@@ -311,7 +322,6 @@ async def guardar_telefono(maquina_id: int, req: TelefonoRequest, db: Session = 
         raise HTTPException(status_code=404, detail="No hay un ciclo activo en esta máquina")
     sesion.cliente_telefono = req.telefono.strip()
     db.commit()
-
     await manager.broadcast({"evento": "actualizacion", "maquinas": estado_completo_maquinas(db)})
     return {"ok": True}
 
@@ -325,6 +335,7 @@ async def liberar_maquina(maquina_id: int, db: Session = Depends(get_db), _: Usu
     sesion = get_sesion_activa(db, maquina.id)
     if sesion:
         sesion.recogido = 1
+        sesion.hora_recogido = datetime.utcnow()
     maquina.estado = EstadoMaquina.disponible
     db.commit()
 
@@ -351,13 +362,81 @@ async def alternar_mantenimiento(maquina_id: int, db: Session = Depends(get_db),
     return {"ok": True}
 
 
-# ---------- WebSocket (exige sesión activa) ----------
+@app.get("/api/maquinas/{maquina_id}/historial")
+def historial_maquina(maquina_id: int, db: Session = Depends(get_db), _: Usuario = Depends(usuario_actual)):
+    maquina = db.query(Maquina).filter(Maquina.id == maquina_id).first()
+    if not maquina:
+        raise HTTPException(status_code=404, detail="Máquina no encontrada")
+    ciclos = (
+        db.query(CicloSesion)
+        .filter(CicloSesion.maquina_id == maquina_id)
+        .order_by(CicloSesion.id.desc())
+        .limit(20)
+        .all()
+    )
+    return [c.to_dict_historial() for c in ciclos]
+
+
+# ---------- Actividad reciente y reportes (datos reales, no simulados) ----------
+@app.get("/api/actividad")
+def actividad_reciente(db: Session = Depends(get_db), _: Usuario = Depends(usuario_actual)):
+    recientes = (
+        db.query(CicloSesion)
+        .order_by(CicloSesion.id.desc())
+        .limit(30)
+        .all()
+    )
+    eventos = []
+    maquinas_por_id = {m.id: m for m in db.query(Maquina).all()}
+    for c in recientes:
+        m = maquinas_por_id.get(c.maquina_id)
+        if not m:
+            continue
+        nombre_maquina = f"{'Lavadora' if m.tipo == TipoMaquina.lavadora else 'Secadora'} {m.numero:02d}"
+        eventos.append({"hora": c.hora_inicio.isoformat(), "texto": f"{nombre_maquina} inició ciclo ({c.cliente_nombre})"})
+        if c.hora_finalizado:
+            eventos.append({"hora": c.hora_finalizado.isoformat(), "texto": f"{nombre_maquina} terminó su ciclo"})
+        if c.hora_recogido:
+            eventos.append({"hora": c.hora_recogido.isoformat(), "texto": f"{nombre_maquina} quedó disponible"})
+    eventos.sort(key=lambda e: e["hora"], reverse=True)
+    return eventos[:15]
+
+
+@app.get("/api/reportes")
+def reportes(db: Session = Depends(get_db), _: Usuario = Depends(usuario_actual)):
+    hoy = datetime.utcnow().date()
+    ciclos_hoy = db.query(CicloSesion).filter(CicloSesion.hora_inicio >= datetime(hoy.year, hoy.month, hoy.day)).all()
+
+    def promedio_duracion(tipo: TipoMaquina):
+        maquinas_ids = [m.id for m in db.query(Maquina).filter(Maquina.tipo == tipo).all()]
+        ciclos = db.query(CicloSesion).filter(
+            CicloSesion.maquina_id.in_(maquinas_ids), CicloSesion.hora_finalizado.isnot(None)
+        ).all()
+        if not ciclos:
+            return None
+        return round(sum(c.duracion_minutos for c in ciclos) / len(ciclos), 1)
+
+    # Uso por hora del día de hoy (cuántos ciclos se iniciaron en cada hora) - dato real, no relleno
+    usos_por_hora = [0] * 24
+    for c in ciclos_hoy:
+        usos_por_hora[c.hora_inicio.hour] += 1
+
+    return {
+        "maquinas": estado_completo_maquinas(db),
+        "ciclos_iniciados_hoy": len(ciclos_hoy),
+        "promedio_duracion_lavadora": promedio_duracion(TipoMaquina.lavadora),
+        "promedio_duracion_secadora": promedio_duracion(TipoMaquina.secadora),
+        "uso_por_hora_hoy": usos_por_hora,
+    }
+
+
+# ---------- WebSocket ----------
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     db = SessionLocal()
     usuario = usuario_actual_ws(websocket, db)
     if not usuario:
-        await websocket.close(code=4401)  # código propio para "no autenticado"
+        await websocket.close(code=4401)
         db.close()
         return
 
@@ -375,7 +454,7 @@ async def websocket_endpoint(websocket: WebSocket):
         db.close()
 
 
-# ---------- Frontend estático ----------
+# ---------- Frontend ----------
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 

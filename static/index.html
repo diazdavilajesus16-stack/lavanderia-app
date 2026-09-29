@@ -3,17 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Control de Lavandería — Autoservicio</title>
+<title>Control de Lavandería</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #EFF2EF;
+    --sidebar: #0F1E33;
+    --sidebar-hover: #1B2E4A;
+    --sidebar-activo: #2B6CB0;
+    --bg: #F1F3F6;
     --surface: #FFFFFF;
     --ink: #1B2430;
     --muted: #5B6B73;
-    --line: #DDE3E0;
+    --line: #E2E6EA;
 
     --disponible: #2F9E44;
     --disponible-soft: #E6F6EA;
@@ -26,590 +29,618 @@
   }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0;
-    min-height: 100%;
-    background: var(--bg);
-    color: var(--ink);
+    margin: 0; min-height: 100%;
+    background: var(--bg); color: var(--ink);
     font-family: "Inter", -apple-system, sans-serif;
   }
-  h1, h2, .num-maquina { font-family: "Outfit", "Inter", sans-serif; }
+  h1, h2, h3, .num-maquina, .marca { font-family: "Outfit", "Inter", sans-serif; }
 
-  /* ---------- Encabezado ---------- */
-  header {
-    background: var(--ink);
-    color: white;
-    padding: 18px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: var(--sidebar); color: white;
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; bottom: 0; left: 0;
+    transition: transform .2s;
+    z-index: 50;
   }
-  header h1 {
-    font-size: 1.15rem;
-    font-weight: 600;
-    margin: 0;
-    letter-spacing: 0.01em;
+  .sidebar .marca {
+    padding: 20px 18px 16px;
+    font-size: 1.02rem; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
   }
-  header h1 .sub {
-    display: block;
-    font-family: "Inter";
-    font-size: 0.72rem;
-    font-weight: 400;
-    color: #9DA9B3;
-    margin-top: 2px;
+  .sidebar .marca .sub { display: block; font-family: "Inter"; font-size: 0.68rem; font-weight: 400; color: #8FA0B3; }
+  .sidebar nav { flex: 1; padding: 12px 10px; }
+  .sidebar .item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+    font-size: 0.86rem; color: #C7D2DD; cursor: pointer;
+    margin-bottom: 2px; user-select: none;
   }
+  .sidebar .item:hover { background: var(--sidebar-hover); color: white; }
+  .sidebar .item.activo { background: var(--sidebar-activo); color: white; }
+  .sidebar .item .ico { font-size: 1rem; width: 20px; text-align: center; }
+  .sidebar .pie {
+    padding: 14px 18px; font-size: 0.72rem; color: #8FA0B3;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sidebar .pie .punto { width: 7px; height: 7px; border-radius: 50%; background: #51CF66; }
+
+  .contenido { flex: 1; margin-left: 220px; min-width: 0; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 14px 26px; display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .topbar h1 { font-size: 1.05rem; margin: 0; }
+  .topbar .acciones { display: flex; align-items: center; gap: 10px; }
   .estado-conexion {
-    font-size: 0.74rem;
-    padding: 5px 12px;
-    border-radius: 20px;
-    background: #3A4756;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-size: 0.74rem; padding: 5px 12px; border-radius: 20px;
+    background: var(--disponible-soft); color: var(--disponible);
+    display: flex; align-items: center; gap: 6px;
   }
-  .estado-conexion::before {
-    content: "";
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: #E8590C;
+  .estado-conexion::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--disponible); }
+  .estado-conexion.mal { background: var(--finalizado-soft); color: var(--finalizado); }
+  .estado-conexion.mal::before { background: var(--finalizado); }
+  .menu-usuario { font-size: 0.82rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .menu-usuario button {
+    background: var(--bg); border: 1px solid var(--line); color: var(--ink);
+    padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; font-family: inherit;
   }
-  .estado-conexion.ok::before { background: #51CF66; }
-  .estado-conexion.mal::before { background: #FF6B6B; }
 
-  /* ---------- Leyenda ---------- */
-  .leyenda {
-    display: flex;
-    gap: 18px;
-    padding: 12px 24px;
-    flex-wrap: wrap;
-    font-size: 0.8rem;
-    color: var(--muted);
-    background: var(--surface);
-    border-bottom: 1px solid var(--line);
-  }
-  .leyenda span { display: flex; align-items: center; gap: 7px; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .vista { padding: 22px 26px 40px; }
+  .vista h2 { font-size: 1.15rem; margin: 0 0 2px; }
+  .vista .subtitulo { font-size: 0.84rem; color: var(--muted); margin-bottom: 18px; }
 
-  /* ---------- Secciones ---------- */
-  .seccion-titulo {
-    padding: 22px 24px 6px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--ink);
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
+  /* ---------- Tarjetas resumen ---------- */
+  .tarjetas-resumen {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 22px;
   }
-  .seccion-titulo .conteo {
-    font-size: 0.78rem;
-    font-weight: 400;
-    color: var(--muted);
+  .tr-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
   }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+  .tr-card .icono { font-size: 1.5rem; }
+  .tr-card .num { font-size: 1.3rem; font-weight: 700; line-height: 1; }
+  .tr-card .lbl { font-size: 0.76rem; color: var(--muted); }
+
+  /* ---------- Paneles / secciones ---------- */
+  .panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 18px;
+  }
+  .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .panel-header h3 { font-size: 0.95rem; margin: 0; }
+  .panel-header .conteo { font-size: 0.76rem; color: var(--muted); }
+  .panel-header a { font-size: 0.8rem; color: var(--en-uso); cursor: pointer; text-decoration: none; }
+
+  .dos-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 900px) { .dos-columnas { grid-template-columns: 1fr; } }
+
+  /* ---------- Grid de máquinas ---------- */
+  .grid-maquinas {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr));
     gap: 10px;
-    padding: 8px 24px 24px;
   }
-
-  /* ---------- Tarjeta "porthole" ---------- */
   .maquina {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px 10px 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: border-color .15s;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 8px 9px; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    cursor: pointer; transition: border-color .15s;
   }
-  .maquina:active { transform: scale(0.98); }
   .maquina:hover { border-color: var(--muted); }
-
-  .porthole { position: relative; width: 66px; height: 66px; }
+  .porthole { position: relative; width: 54px; height: 54px; }
   .porthole svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .porthole .pista { fill: none; stroke: var(--line); stroke-width: 6; }
-  .porthole .progreso { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
-  .porthole .icono-centro {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.35rem;
-  }
-
+  .porthole .pista { fill: none; stroke: var(--line); stroke-width: 5; }
+  .porthole .progreso { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+  .porthole .icono-centro { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
   .maquina.disponible .progreso { stroke: var(--disponible); }
   .maquina.en_uso .progreso { stroke: var(--en-uso); }
   .maquina.finalizado .progreso { stroke: var(--finalizado); }
   .maquina.mantenimiento .progreso { stroke: var(--mantenimiento); }
+  .maquina.finalizado .porthole { animation: respirar 1.8s ease-in-out infinite; }
+  @keyframes respirar { 0%,100% { filter: drop-shadow(0 0 0 rgba(232,89,12,0)); } 50% { filter: drop-shadow(0 0 6px rgba(232,89,12,0.45)); } }
 
-  .num-maquina { font-size: 0.86rem; font-weight: 600; }
-  .estado-txt {
-    font-size: 0.66rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 20px;
-  }
+  .num-maquina { font-size: 0.8rem; font-weight: 600; }
+  .estado-txt { font-size: 0.63rem; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
   .maquina.disponible .estado-txt { color: var(--disponible); background: var(--disponible-soft); }
   .maquina.en_uso .estado-txt { color: var(--en-uso); background: var(--en-uso-soft); }
   .maquina.finalizado .estado-txt { color: var(--finalizado); background: var(--finalizado-soft); }
   .maquina.mantenimiento .estado-txt { color: var(--mantenimiento); background: var(--mantenimiento-soft); }
-
-  .cliente-nombre { font-size: 0.78rem; font-weight: 600; color: var(--ink); text-align: center; }
-  .tiempo-restante { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cliente-nombre { font-size: 0.72rem; font-weight: 600; text-align: center; }
+  .tiempo-restante { font-size: 0.68rem; color: var(--muted); font-variant-numeric: tabular-nums; }
   .maquina.finalizado .tiempo-restante { color: var(--finalizado); font-weight: 600; }
 
-  /* pulso sutil solo en máquinas que ya terminaron: llama la atención sin animar todo el grid */
-  .maquina.finalizado .porthole { animation: respirar 1.8s ease-in-out infinite; }
-  @keyframes respirar {
-    0%, 100% { filter: drop-shadow(0 0 0 rgba(232,89,12,0)); }
-    50% { filter: drop-shadow(0 0 6px rgba(232,89,12,0.45)); }
+  /* ---------- Filtros de lista ---------- */
+  .filtros { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filtros input, .filtros select {
+    padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 0.84rem; font-family: inherit; background: var(--surface);
+  }
+  .filtros input { flex: 1; min-width: 160px; }
+
+  /* ---------- Dona de estados ---------- */
+  .dona-wrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .dona-svg { width: 130px; height: 130px; flex-shrink: 0; }
+  .dona-centro-num { font-size: 1.5rem; font-weight: 700; }
+  .dona-leyenda { font-size: 0.82rem; flex: 1; min-width: 140px; }
+  .dona-leyenda .fila { display: flex; justify-content: space-between; padding: 5px 0; }
+  .dona-leyenda .fila .etiqueta { display: flex; align-items: center; gap: 7px; color: var(--muted); }
+  .dona-leyenda .dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  /* ---------- Actividad ---------- */
+  .actividad-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 0.83rem; }
+  .actividad-item:last-child { border-bottom: none; }
+  .actividad-item .hora { color: var(--muted); font-size: 0.74rem; min-width: 42px; }
+  .actividad-vacio { color: var(--muted); font-size: 0.84rem; padding: 8px 0; }
+
+  /* ---------- Barras uso por hora ---------- */
+  .barras { display: flex; align-items: flex-end; gap: 3px; height: 90px; }
+  .barras .barra { flex: 1; background: var(--en-uso); border-radius: 3px 3px 0 0; min-height: 2px; }
+  .barras-ejes { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--muted); margin-top: 4px; }
+
+  /* ---------- Detalle de máquina ---------- */
+  .detalle-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .detalle-header .titulo-detalle { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: 600; }
+  .badge-estado { font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .badge-estado.disponible { color: var(--disponible); background: var(--disponible-soft); }
+  .badge-estado.en_uso { color: var(--en-uso); background: var(--en-uso-soft); }
+  .badge-estado.finalizado { color: var(--finalizado); background: var(--finalizado-soft); }
+  .badge-estado.mantenimiento { color: var(--mantenimiento); background: var(--mantenimiento-soft); }
+  .btn-volver {
+    background: var(--surface); border: 1px solid var(--line); color: var(--ink);
+    padding: 7px 14px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-family: inherit;
   }
 
-  /* ---------- Overlay + hoja inferior (mobile) / modal (desktop) ---------- */
-  .overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(27,36,48,0.5);
-    z-index: 100;
-    align-items: flex-end;
-    justify-content: center;
-  }
-  .overlay.show { display: flex; }
-  .hoja {
-    background: var(--surface);
-    width: 100%;
-    max-width: 420px;
-    border-radius: 20px 20px 0 0;
-    padding: 22px 22px calc(22px + env(safe-area-inset-bottom, 0px));
-    animation: subir .22s ease-out;
-  }
-  @keyframes subir { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @media (min-width: 640px) {
-    .overlay { align-items: center; }
-    .hoja { border-radius: 16px; margin-bottom: 0; }
-  }
+  .info-linea { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.86rem; }
+  .info-linea:last-child { border-bottom: none; }
+  .info-linea span:first-child { color: var(--muted); }
+  .info-linea span:last-child { font-weight: 600; text-align: right; }
 
-  .hoja .manija {
-    width: 36px; height: 4px; background: var(--line); border-radius: 4px;
-    margin: 0 auto 16px;
-  }
-  @media (min-width: 640px) { .hoja .manija { display: none; } }
+  table.tabla-historial { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  table.tabla-historial th { text-align: left; color: var(--muted); font-weight: 600; padding: 7px 6px; border-bottom: 1px solid var(--line); font-size: 0.74rem; }
+  table.tabla-historial td { padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  .chip-completado { color: var(--disponible); background: var(--disponible-soft); font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; }
+  .chip-en-curso { color: var(--en-uso); background: var(--en-uso-soft); font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; }
 
-  .hoja h2 { margin: 0 0 4px; font-size: 1.05rem; }
-  .hoja .subtitulo { font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; }
-
-  .campo { margin-bottom: 14px; }
-  .campo label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; }
-  .campo input {
-    width: 100%; padding: 11px 12px;
-    border: 1px solid var(--line); border-radius: 10px;
-    font-size: 0.92rem; font-family: inherit;
-    background: var(--bg);
-  }
-  .campo input:focus { outline: 2px solid var(--en-uso); outline-offset: 1px; }
-
-  .fila-botones { display: flex; gap: 10px; margin-top: 18px; }
-  .fila-botones button {
-    flex: 1; padding: 12px; border: none; border-radius: 10px;
-    font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit;
-  }
+  /* ---------- Botones generales ---------- */
+  .btn { padding: 10px 16px; border: none; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
   .btn-primario { background: var(--en-uso); color: white; }
-  .btn-secundario { background: var(--bg); color: var(--ink); border: 1px solid var(--line) !important; }
+  .btn-secundario { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
   .btn-liberar { background: var(--disponible); color: white; }
   .btn-whatsapp { background: #25D366; color: white; }
+  .btn-peligro-texto { color: var(--finalizado); cursor: pointer; font-weight: 600; font-size: 0.82rem; }
+  .fila-botones { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 
-  .fila-botones.tres { flex-wrap: wrap; }
-  .fila-botones.tres button { min-width: 100px; }
+  /* ---------- Overlay / hoja ---------- */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(15,30,51,0.5); z-index: 100; align-items: flex-end; justify-content: center; }
+  .overlay.show { display: flex; }
+  .hoja { background: var(--surface); width: 100%; max-width: 420px; border-radius: 20px 20px 0 0; padding: 22px 22px calc(22px + env(safe-area-inset-bottom, 0px)); animation: subir .22s ease-out; }
+  @keyframes subir { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @media (min-width: 640px) { .overlay { align-items: center; } .hoja { border-radius: 16px; } }
+  .hoja .manija { width: 36px; height: 4px; background: var(--line); border-radius: 4px; margin: 0 auto 16px; }
+  @media (min-width: 640px) { .hoja .manija { display: none; } }
+  .hoja h2 { margin: 0 0 4px; font-size: 1.05rem; }
+  .hoja .subtitulo2 { font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; }
+  .campo { margin-bottom: 14px; }
+  .campo label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; }
+  .campo input, .campo select { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; font-family: inherit; background: var(--bg); }
 
-  .info-linea {
-    display: flex; justify-content: space-between;
-    padding: 9px 0; border-bottom: 1px solid var(--line);
-    font-size: 0.86rem;
+  /* ---------- Formulario configuración ---------- */
+  .form-config { max-width: 420px; }
+
+  /* Botón hamburguesa para móvil */
+  .btn-menu { display: none; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--ink); }
+  @media (max-width: 860px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.abierto { transform: translateX(0); }
+    .contenido { margin-left: 0; }
+    .btn-menu { display: block; }
   }
-  .info-linea span:first-child { color: var(--muted); }
-  .info-linea span:last-child { font-weight: 600; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Control de Lavandería
-    <span class="sub">Autoservicio — Lavadoras y secadoras</span>
-  </h1>
-  <div style="display:flex; align-items:center; gap:12px;">
-    <span id="conexion" class="estado-conexion">Conectando</span>
-    <span id="usuario-info" style="font-size:0.82rem; color:#9DA9B3;"></span>
-    <button id="btn-usuarios" onclick="abrirUsuarios()" style="display:none; background:#3A4756; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:0.78rem; cursor:pointer;">Usuarios</button>
-    <button onclick="cerrarSesion()" style="background:#3A4756; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:0.78rem; cursor:pointer;">Salir</button>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="marca">
+      🧺 <span>Control de Lavandería<span class="sub" id="nombre-negocio-sub">Autoservicio</span></span>
+    </div>
+    <nav>
+      <div class="item activo" data-vista="inicio" onclick="irAVista('inicio')"><span class="ico">🏠</span> Inicio</div>
+      <div class="item" data-vista="lavadoras" onclick="irAVista('lavadoras')"><span class="ico">🫧</span> Lavadoras</div>
+      <div class="item" data-vista="secadoras" onclick="irAVista('secadoras')"><span class="ico">🌀</span> Secadoras</div>
+      <div class="item" data-vista="reportes" onclick="irAVista('reportes')"><span class="ico">📊</span> Reportes</div>
+      <div class="item" data-vista="usuarios" id="nav-usuarios" style="display:none;" onclick="irAVista('usuarios')"><span class="ico">👤</span> Usuarios</div>
+      <div class="item" data-vista="configuracion" id="nav-config" style="display:none;" onclick="irAVista('configuracion')"><span class="ico">⚙️</span> Configuración</div>
+    </nav>
+    <div class="pie"><span class="punto"></span> Sistema en línea · v1.0</div>
+  </aside>
+
+  <div class="contenido">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn-menu" onclick="document.getElementById('sidebar').classList.toggle('abierto')">☰</button>
+        <h1 id="titulo-vista">Inicio</h1>
+      </div>
+      <div class="acciones">
+        <span id="conexion" class="estado-conexion">Conectando</span>
+        <div class="menu-usuario">
+          <span id="usuario-info"></span>
+          <button onclick="cerrarSesion()">Salir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vista" id="vista-contenedor"></div>
   </div>
-</header>
-
-<div class="leyenda">
-  <span><span class="dot" style="background:var(--disponible)"></span>Disponible</span>
-  <span><span class="dot" style="background:var(--en-uso)"></span>En uso</span>
-  <span><span class="dot" style="background:var(--finalizado)"></span>Ciclo terminado</span>
-  <span><span class="dot" style="background:var(--mantenimiento)"></span>Mantenimiento</span>
 </div>
-
-<div class="seccion-titulo">Lavadoras <span class="conteo" id="conteo-lavadoras"></span></div>
-<div class="grid" id="grid-lavadoras"></div>
-
-<div class="seccion-titulo">Secadoras <span class="conteo" id="conteo-secadoras"></span></div>
-<div class="grid" id="grid-secadoras"></div>
 
 <!-- Hoja: iniciar ciclo -->
 <div class="overlay" id="overlay-iniciar">
   <div class="hoja">
     <div class="manija"></div>
     <h2 id="titulo-iniciar">Asignar máquina</h2>
-    <div class="subtitulo">Ingresa los datos del cliente para iniciar el ciclo</div>
-    <div class="campo">
-      <label>Nombre del cliente</label>
-      <input type="text" id="input-nombre" placeholder="Ej: María">
-    </div>
-    <div class="campo">
-      <label>Teléfono (opcional)</label>
-      <input type="text" id="input-telefono" placeholder="Ej: 987654321">
-    </div>
-    <div class="campo">
-      <label>Duración del ciclo (minutos)</label>
-      <input type="number" id="input-duracion" placeholder="Ej: 35">
-    </div>
+    <div class="subtitulo2">Ingresa los datos del cliente para iniciar el ciclo</div>
+    <div class="campo"><label>Nombre del cliente</label><input type="text" id="input-nombre" placeholder="Ej: María"></div>
+    <div class="campo"><label>Teléfono (opcional)</label><input type="text" id="input-telefono" placeholder="Ej: 987654321"></div>
+    <div class="campo"><label>Duración del ciclo (minutos)</label><input type="number" id="input-duracion" placeholder="Ej: 35"></div>
     <div class="fila-botones">
-      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn-primario" onclick="confirmarInicio()">Iniciar ciclo</button>
-    </div>
-  </div>
-</div>
-
-<!-- Hoja: detalle / liberar -->
-<div class="overlay" id="overlay-detalle">
-  <div class="hoja">
-    <div class="manija"></div>
-    <h2 id="titulo-detalle">Máquina</h2>
-    <div id="detalle-contenido" style="margin-top: 10px;"></div>
-    <div class="fila-botones tres">
-      <button class="btn-secundario" onclick="cerrarModal()">Cerrar</button>
-      <button class="btn-whatsapp" id="btn-whatsapp" onclick="avisarWhatsApp()" style="display:none;">Avisar por WhatsApp</button>
-      <button class="btn-liberar" id="btn-liberar" onclick="confirmarLiberar()">Ropa recogida</button>
-    </div>
-  </div>
-</div>
-
-<!-- Hoja: gestión de usuarios (solo dueño) -->
-<div class="overlay" id="overlay-usuarios">
-  <div class="hoja" style="max-width: 460px;">
-    <div class="manija"></div>
-    <h2>Usuarios con acceso</h2>
-    <div class="subtitulo">Solo el dueño puede agregar o quitar personal</div>
-
-    <div id="lista-usuarios" style="margin-bottom: 18px;"></div>
-
-    <div style="border-top: 1px solid var(--line); padding-top: 16px;">
-      <div class="campo">
-        <label>Nombre</label>
-        <input type="text" id="nu-nombre" placeholder="Ej: Carlos (turno tarde)">
-      </div>
-      <div class="campo">
-        <label>Usuario</label>
-        <input type="text" id="nu-username" placeholder="Ej: carlos">
-      </div>
-      <div class="campo">
-        <label>Contraseña</label>
-        <input type="text" id="nu-password" placeholder="Contraseña temporal">
-      </div>
-      <div class="campo">
-        <label>Rol</label>
-        <select id="nu-rol" style="width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; font-size:0.92rem; background:var(--bg);">
-          <option value="personal">Personal</option>
-          <option value="dueno">Dueño</option>
-        </select>
-      </div>
-      <button class="btn-primario" style="width:100%; padding:12px; border:none; border-radius:10px; font-weight:600; cursor:pointer;" onclick="crearUsuario()">Agregar usuario</button>
-    </div>
-    <div class="fila-botones">
-      <button class="btn-secundario" onclick="cerrarModalUsuarios()">Cerrar</button>
+      <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primario" onclick="confirmarInicio()">Iniciar ciclo</button>
     </div>
   </div>
 </div>
 
 <script>
-let maquinaSeleccionada = null;
 let maquinasCache = [];
 let miUsuario = null;
-const RADIO = 28;
-const CIRCUNFERENCIA = 2 * Math.PI * RADIO;
+let vistaActual = "inicio";
+let maquinaDetalleId = null;
+let filtroTexto = "";
+let filtroEstado = "";
+const RADIO = 24;
+const CIRC = 2 * Math.PI * RADIO;
+const COLORES_ESTADO = { disponible: "#2F9E44", en_uso: "#2B6CB0", finalizado: "#E8590C", mantenimiento: "#868E96" };
+const NOMBRES_ESTADO = { disponible: "Disponibles", en_uso: "En uso", finalizado: "Ciclo terminado", mantenimiento: "Mantenimiento" };
 
-function iconoTipo(tipo) {
-  return tipo === "lavadora" ? "🫧" : "🌀";
-}
+function iconoTipo(tipo) { return tipo === "lavadora" ? "🫧" : "🌀"; }
 
 function calcularProgreso(m) {
   if (m.estado === "en_uso" && m.sesion) {
     const inicio = new Date(m.sesion.hora_inicio + "Z").getTime();
     const fin = new Date(m.sesion.hora_fin_estimada + "Z").getTime();
     const ahora = Date.now();
-    const pct = Math.min(1, Math.max(0, (ahora - inicio) / (fin - inicio)));
-    return pct;
+    return Math.min(1, Math.max(0, (ahora - inicio) / (fin - inicio)));
   }
   if (m.estado === "finalizado") return 1;
   return 0;
 }
 
 function formatearRestante(finISO) {
-  const fin = new Date(finISO + "Z");
-  const ahora = new Date();
-  let diffMs = fin - ahora;
-  if (diffMs < 0) diffMs = 0;
+  const diffMs = Math.max(0, new Date(finISO + "Z") - new Date());
   const totalSeg = Math.floor(diffMs / 1000);
-  const min = Math.floor(totalSeg / 60);
-  const seg = totalSeg % 60;
-  return `${min}:${seg.toString().padStart(2, "0")}`;
+  return `${Math.floor(totalSeg / 60)}:${(totalSeg % 60).toString().padStart(2, "0")}`;
+}
+
+function formatearFechaHora(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso + "Z");
+  return d.toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function porthole(m) {
   const pct = calcularProgreso(m);
-  const offset = CIRCUNFERENCIA * (1 - pct);
+  const offset = CIRC * (1 - pct);
+  return `<div class="porthole"><svg viewBox="0 0 60 60">
+      <circle class="pista" cx="30" cy="30" r="${RADIO}"></circle>
+      <circle class="progreso" cx="30" cy="30" r="${RADIO}" stroke-dasharray="${CIRC}" stroke-dashoffset="${offset}"></circle>
+    </svg><div class="icono-centro">${iconoTipo(m.tipo)}</div></div>`;
+}
+
+function tarjetaMaquina(m) {
+  let extra = "";
+  if (m.estado === "en_uso" && m.sesion) {
+    extra = `<div class="cliente-nombre">${m.sesion.cliente_nombre}</div><div class="tiempo-restante" data-fin="${m.sesion.hora_fin_estimada}">${formatearRestante(m.sesion.hora_fin_estimada)}</div>`;
+  } else if (m.estado === "finalizado" && m.sesion) {
+    extra = `<div class="cliente-nombre">${m.sesion.cliente_nombre}</div><div class="tiempo-restante">Listo</div>`;
+  }
+  return `<div class="maquina ${m.estado}" onclick="irADetalle(${m.id})">
+      ${porthole(m)}
+      <div class="num-maquina">${m.tipo === "lavadora" ? "Lavadora" : "Secadora"} ${String(m.numero).padStart(2,"0")}</div>
+      <div class="estado-txt">${NOMBRES_ESTADO[m.estado]}</div>
+      ${extra}
+    </div>`;
+}
+
+// ---------- Navegación ----------
+function irAVista(vista) {
+  vistaActual = vista;
+  maquinaDetalleId = null;
+  document.querySelectorAll(".sidebar .item").forEach(el => el.classList.toggle("activo", el.dataset.vista === vista));
+  const titulos = { inicio: "Inicio", lavadoras: "Lavadoras", secadoras: "Secadoras", reportes: "Reportes", usuarios: "Usuarios", configuracion: "Configuración", detalle: "Detalle de máquina" };
+  document.getElementById("titulo-vista").textContent = titulos[vista] || "";
+  document.getElementById("sidebar").classList.remove("abierto");
+  render();
+}
+
+function irADetalle(id) {
+  maquinaDetalleId = id;
+  vistaActual = "detalle";
+  document.getElementById("titulo-vista").textContent = "Detalle de máquina";
+  document.querySelectorAll(".sidebar .item").forEach(el => el.classList.remove("activo"));
+  render();
+}
+
+// ---------- Render dispatcher ----------
+function render() {
+  const cont = document.getElementById("vista-contenedor");
+  if (vistaActual === "inicio") { cont.innerHTML = vistaInicio(); cargarActividadEnVista("actividad-inicio"); }
+  else if (vistaActual === "lavadoras") cont.innerHTML = vistaListaMaquinas("lavadora");
+  else if (vistaActual === "secadoras") cont.innerHTML = vistaListaMaquinas("secadora");
+  else if (vistaActual === "detalle") renderDetalle(cont);
+  else if (vistaActual === "reportes") renderReportes(cont);
+  else if (vistaActual === "usuarios") renderUsuarios(cont);
+  else if (vistaActual === "configuracion") renderConfiguracion(cont);
+}
+
+// ---------- Vista: Inicio ----------
+function vistaInicio() {
+  const conteos = { disponible: 0, en_uso: 0, finalizado: 0, mantenimiento: 0 };
+  maquinasCache.forEach(m => conteos[m.estado]++);
+  const lavadoras = maquinasCache.filter(m => m.tipo === "lavadora").slice(0, 12);
+  const secadoras = maquinasCache.filter(m => m.tipo === "secadora").slice(0, 12);
+
   return `
-    <div class="porthole">
-      <svg viewBox="0 0 70 70">
-        <circle class="pista" cx="35" cy="35" r="${RADIO}"></circle>
-        <circle class="progreso" cx="35" cy="35" r="${RADIO}"
-          stroke-dasharray="${CIRCUNFERENCIA}"
-          stroke-dashoffset="${offset}"></circle>
-      </svg>
-      <div class="icono-centro">${iconoTipo(m.tipo)}</div>
+    <div class="tarjetas-resumen">
+      <div class="tr-card"><span class="icono">🟢</span><div><div class="num">${conteos.disponible}</div><div class="lbl">Disponibles</div></div></div>
+      <div class="tr-card"><span class="icono">🔵</span><div><div class="num">${conteos.en_uso}</div><div class="lbl">En uso</div></div></div>
+      <div class="tr-card"><span class="icono">🟠</span><div><div class="num">${conteos.finalizado}</div><div class="lbl">Ciclo terminado</div></div></div>
+      <div class="tr-card"><span class="icono">⚪</span><div><div class="num">${conteos.mantenimiento}</div><div class="lbl">Mantenimiento</div></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h3>Lavadoras</h3><span class="conteo">${conteos_de_tipo("lavadora")}</span><a onclick="irAVista('lavadoras')">Ver todas →</a></div>
+      <div class="grid-maquinas">${lavadoras.map(tarjetaMaquina).join("")}</div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><h3>Secadoras</h3><span class="conteo">${conteos_de_tipo("secadora")}</span><a onclick="irAVista('secadoras')">Ver todas →</a></div>
+      <div class="grid-maquinas">${secadoras.map(tarjetaMaquina).join("")}</div>
+    </div>
+
+    <div class="dos-columnas">
+      <div class="panel">
+        <div class="panel-header"><h3>Máquinas por estado</h3></div>
+        <div id="dona-inicio">${donaEstados(conteos)}</div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h3>Actividad reciente</h3></div>
+        <div id="actividad-inicio">Cargando…</div>
+      </div>
     </div>
   `;
 }
 
-// ---------- Alerta sonora (gratuita, generada en el navegador, sin archivos externos) ----------
-let estadosAnteriores = {};
-let audioCtx = null;
-
-function reproducirAlerta() {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const ahora = audioCtx.currentTime;
-    [0, 0.18].forEach(retraso => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.001, ahora + retraso);
-      gain.gain.exponentialRampToValueAtTime(0.25, ahora + retraso + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, ahora + retraso + 0.35);
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start(ahora + retraso);
-      osc.stop(ahora + retraso + 0.4);
-    });
-  } catch (e) { /* algunos navegadores requieren una interacción previa del usuario; se ignora si falla */ }
+function conteos_de_tipo(tipo) {
+  const total = maquinasCache.filter(m => m.tipo === tipo).length;
+  const disp = maquinasCache.filter(m => m.tipo === tipo && m.estado === "disponible").length;
+  return `${disp} disponibles de ${total}`;
 }
 
-function detectarNuevosFinalizados(maquinas) {
-  let hayNuevo = false;
-  maquinas.forEach(m => {
-    const anterior = estadosAnteriores[m.id];
-    if (m.estado === "finalizado" && anterior && anterior !== "finalizado") {
-      hayNuevo = true;
-    }
-    estadosAnteriores[m.id] = m.estado;
-  });
-  if (hayNuevo) reproducirAlerta();
-}
+function donaEstados(conteos) {
+  const total = Object.values(conteos).reduce((a, b) => a + b, 0) || 1;
+  let acumulado = 0;
+  const segmentos = Object.entries(conteos).map(([estado, cant]) => {
+    const frac = cant / total;
+    const dash = frac * CIRC_DONA;
+    const seg = `<circle class="pista-dona" cx="50" cy="50" r="${RADIO_DONA}" stroke="${COLORES_ESTADO[estado]}"
+        stroke-dasharray="${dash} ${CIRC_DONA - dash}" stroke-dashoffset="${-acumulado}"></circle>`;
+    acumulado += dash;
+    return seg;
+  }).join("");
 
-function render() {
-  const gridLav = document.getElementById("grid-lavadoras");
-  const gridSec = document.getElementById("grid-secadoras");
-  gridLav.innerHTML = "";
-  gridSec.innerHTML = "";
-
-  const lav = maquinasCache.filter(m => m.tipo === "lavadora");
-  const sec = maquinasCache.filter(m => m.tipo === "secadora");
-  document.getElementById("conteo-lavadoras").textContent =
-    `· ${lav.filter(m => m.estado === "disponible").length} disponibles de ${lav.length}`;
-  document.getElementById("conteo-secadoras").textContent =
-    `· ${sec.filter(m => m.estado === "disponible").length} disponibles de ${sec.length}`;
-
-  maquinasCache.forEach(m => {
-    const div = document.createElement("div");
-    div.className = `maquina ${m.estado}`;
-    div.onclick = () => abrirDetalle(m);
-
-    let textoEstado = {
-      disponible: "Disponible",
-      en_uso: "En uso",
-      finalizado: "Terminó",
-      mantenimiento: "Servicio"
-    }[m.estado];
-
-    let extra = "";
-    if (m.estado === "en_uso" && m.sesion) {
-      extra = `<div class="cliente-nombre">${m.sesion.cliente_nombre}</div>
-               <div class="tiempo-restante" data-fin="${m.sesion.hora_fin_estimada}">${formatearRestante(m.sesion.hora_fin_estimada)}</div>`;
-    } else if (m.estado === "finalizado" && m.sesion) {
-      extra = `<div class="cliente-nombre">${m.sesion.cliente_nombre}</div>
-               <div class="tiempo-restante">Listo</div>`;
-    }
-
-    div.innerHTML = `
-      ${porthole(m)}
-      <div class="num-maquina">${m.tipo === "lavadora" ? "Lavadora" : "Secadora"} ${m.numero}</div>
-      <div class="estado-txt">${textoEstado}</div>
-      ${extra}
-    `;
-
-    if (m.tipo === "lavadora") gridLav.appendChild(div);
-    else gridSec.appendChild(div);
-  });
-}
-
-function abrirDetalle(m) {
-  maquinaSeleccionada = m;
-  if (m.estado === "disponible") {
-    document.getElementById("titulo-iniciar").textContent =
-      `${m.tipo === "lavadora" ? "Lavadora" : "Secadora"} ${m.numero}`;
-    document.getElementById("input-nombre").value = "";
-    document.getElementById("input-telefono").value = "";
-    document.getElementById("input-duracion").value = m.tipo === "lavadora" ? 35 : 45;
-    document.getElementById("overlay-iniciar").classList.add("show");
-  } else if (m.estado === "mantenimiento") {
-    document.getElementById("titulo-detalle").textContent =
-      `${m.tipo === "lavadora" ? "Lavadora" : "Secadora"} ${m.numero}`;
-    document.getElementById("detalle-contenido").innerHTML =
-      `<div class="info-linea"><span>Estado</span><span>En mantenimiento</span></div>`;
-    document.getElementById("btn-liberar").style.display = "none";
-    document.getElementById("btn-whatsapp").style.display = "none";
-    document.getElementById("overlay-detalle").classList.add("show");
-  } else {
-    document.getElementById("btn-liberar").style.display = "block";
-    document.getElementById("titulo-detalle").textContent =
-      `${m.tipo === "lavadora" ? "Lavadora" : "Secadora"} ${m.numero}`;
-    const s = m.sesion;
-    let html = "";
-    if (s) {
-      html += `<div class="info-linea"><span>Cliente</span><span>${s.cliente_nombre}</span></div>`;
-      html += `<div class="info-linea"><span>Teléfono</span><span>${s.cliente_telefono || "No registrado"}</span></div>`;
-      html += `<div class="info-linea"><span>Duración</span><span>${s.duracion_minutos} min</span></div>`;
-      html += `<div class="info-linea"><span>Estado</span><span>${m.estado === "en_uso" ? "En funcionamiento" : "Ciclo terminado"}</span></div>`;
-    }
-    document.getElementById("detalle-contenido").innerHTML = html;
-
-    // El botón de WhatsApp solo tiene sentido cuando el ciclo ya terminó
-    const btnWa = document.getElementById("btn-whatsapp");
-    if (m.estado === "finalizado" && s) {
-      btnWa.style.display = "block";
-      btnWa.textContent = s.cliente_telefono ? "Avisar por WhatsApp" : "Agregar teléfono para avisar";
-    } else {
-      btnWa.style.display = "none";
-    }
-    document.getElementById("overlay-detalle").classList.add("show");
-  }
-}
-
-function formatearNumeroPeru(telefono) {
-  // Limpia el número y le agrega el código de país (51) si hace falta,
-  // para que el enlace de WhatsApp funcione sin que el personal tenga que escribirlo.
-  let limpio = telefono.replace(/[^0-9]/g, "");
-  if (limpio.length === 9) limpio = "51" + limpio;      // celular peruano típico: 9XXXXXXXX
-  return limpio;
-}
-
-async function avisarWhatsApp() {
-  const s = maquinaSeleccionada.sesion;
-  let telefono = s.cliente_telefono;
-
-  if (!telefono) {
-    telefono = prompt("No hay teléfono registrado para este cliente.\nIngresa el número de WhatsApp:");
-    if (!telefono) return;
-    // Guardamos el teléfono en el ciclo actual para no volver a pedirlo
-    await fetch(`/api/maquinas/${maquinaSeleccionada.id}/telefono`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telefono }),
-    });
-  }
-
-  const numero = formatearNumeroPeru(telefono);
-  const nombreMaquina = `${maquinaSeleccionada.tipo === "lavadora" ? "lavadora" : "secadora"} ${maquinaSeleccionada.numero}`;
-  const mensaje = `Hola ${s.cliente_nombre}, tu ropa en la ${nombreMaquina} ya está lista. Puedes pasar a recogerla cuando gustes. ¡Gracias por tu preferencia!`;
-  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-  window.open(url, "_blank");
-}
-
-function cerrarModal() {
-  document.getElementById("overlay-iniciar").classList.remove("show");
-  document.getElementById("overlay-detalle").classList.remove("show");
-  maquinaSeleccionada = null;
-}
-
-async function confirmarInicio() {
-  const nombre = document.getElementById("input-nombre").value.trim();
-  const telefono = document.getElementById("input-telefono").value.trim();
-  const duracion = parseInt(document.getElementById("input-duracion").value, 10);
-
-  if (!nombre) {
-    alert("Por favor ingresa el nombre del cliente.");
-    return;
-  }
-  await fetch(`/api/maquinas/${maquinaSeleccionada.id}/iniciar`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      cliente_nombre: nombre,
-      cliente_telefono: telefono || null,
-      duracion_minutos: duracion || null,
-    }),
-  });
-  cerrarModal();
-}
-
-async function confirmarLiberar() {
-  await fetch(`/api/maquinas/${maquinaSeleccionada.id}/liberar`, { method: "POST" });
-  cerrarModal();
-}
-
-// ---------- Usuario actual / sesión ----------
-async function cargarUsuarioActual() {
-  const resp = await fetch("/api/me");
-  if (resp.status === 401) {
-    window.location.href = "/login";
-    return;
-  }
-  miUsuario = await resp.json();
-  document.getElementById("usuario-info").textContent = `${miUsuario.nombre}`;
-  if (miUsuario.rol === "dueno") {
-    document.getElementById("btn-usuarios").style.display = "inline-block";
-  }
-}
-
-async function cerrarSesion() {
-  await fetch("/api/logout", { method: "POST" });
-  window.location.href = "/login";
-}
-
-// ---------- Gestión de usuarios (panel del dueño) ----------
-async function abrirUsuarios() {
-  await cargarListaUsuarios();
-  document.getElementById("overlay-usuarios").classList.add("show");
-}
-function cerrarModalUsuarios() {
-  document.getElementById("overlay-usuarios").classList.remove("show");
-}
-
-async function cargarListaUsuarios() {
-  const resp = await fetch("/api/usuarios");
-  if (!resp.ok) return;
-  const usuarios = await resp.json();
-  const cont = document.getElementById("lista-usuarios");
-  cont.innerHTML = usuarios.map(u => `
-    <div class="info-linea">
-      <span>${u.nombre} <span style="color:var(--muted); font-size:0.75rem;">(${u.username} · ${u.rol === "dueno" ? "Dueño" : "Personal"})</span></span>
-      ${u.id !== miUsuario.id ? `<span style="color:#E8590C; cursor:pointer; font-weight:600;" onclick="eliminarUsuario(${u.id})">Quitar</span>` : `<span style="color:var(--muted); font-size:0.78rem;">Tú</span>`}
-    </div>
+  const leyenda = Object.entries(conteos).map(([estado, cant]) => `
+    <div class="fila"><span class="etiqueta"><span class="dot" style="background:${COLORES_ESTADO[estado]}"></span>${NOMBRES_ESTADO[estado]}</span><span>${cant}</span></div>
   `).join("");
+
+  return `<div class="dona-wrap">
+    <svg class="dona-svg" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="${RADIO_DONA}" fill="none" stroke="#EEF1F3" stroke-width="12"></circle>
+      <g transform="rotate(-90 50 50)" style="fill:none; stroke-width:12;">${segmentos}</g>
+      <text x="50" y="47" text-anchor="middle" font-size="18" font-weight="700" fill="var(--ink)">${Object.values(conteos).reduce((a,b)=>a+b,0)}</text>
+      <text x="50" y="61" text-anchor="middle" font-size="7" fill="var(--muted)">Total</text>
+    </svg>
+    <div class="dona-leyenda">${leyenda}</div>
+  </div>`;
+}
+const RADIO_DONA = 40;
+const CIRC_DONA = 2 * Math.PI * RADIO_DONA;
+
+async function cargarActividadEnVista(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  try {
+    const resp = await fetch("/api/actividad");
+    if (!resp.ok) return;
+    const eventos = await resp.json();
+    if (!eventos.length) { el.innerHTML = `<div class="actividad-vacio">Todavía no hay actividad registrada.</div>`; return; }
+    el.innerHTML = eventos.map(e => {
+      const hora = new Date(e.hora + "Z").toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+      return `<div class="actividad-item"><span class="hora">${hora}</span><span>${e.texto}</span></div>`;
+    }).join("");
+  } catch (e) { /* silencioso */ }
+}
+
+// ---------- Vista: lista de lavadoras/secadoras ----------
+function vistaListaMaquinas(tipo) {
+  const titulo = tipo === "lavadora" ? "Lavadoras" : "Secadoras";
+  let lista = maquinasCache.filter(m => m.tipo === tipo);
+  if (filtroTexto) lista = lista.filter(m => String(m.numero).includes(filtroTexto));
+  if (filtroEstado) lista = lista.filter(m => m.estado === filtroEstado);
+
+  return `
+    <div class="panel">
+      <div class="panel-header"><h3>${titulo}</h3><span class="conteo">${conteos_de_tipo(tipo)}</span></div>
+      <div class="filtros">
+        <input type="text" placeholder="Buscar por número..." value="${filtroTexto}" oninput="filtroTexto=this.value; render()">
+        <select onchange="filtroEstado=this.value; render()">
+          <option value="">Todos los estados</option>
+          <option value="disponible" ${filtroEstado==="disponible"?"selected":""}>Disponible</option>
+          <option value="en_uso" ${filtroEstado==="en_uso"?"selected":""}>En uso</option>
+          <option value="finalizado" ${filtroEstado==="finalizado"?"selected":""}>Ciclo terminado</option>
+          <option value="mantenimiento" ${filtroEstado==="mantenimiento"?"selected":""}>Mantenimiento</option>
+        </select>
+      </div>
+      <div class="grid-maquinas">${lista.map(tarjetaMaquina).join("") || "<span style='color:var(--muted); font-size:0.85rem;'>No hay máquinas que coincidan con el filtro.</span>"}</div>
+    </div>
+  `;
+}
+
+// ---------- Vista: Detalle ----------
+function renderDetalle(cont) {
+  const m = maquinasCache.find(x => x.id === maquinaDetalleId);
+  if (!m) { cont.innerHTML = "<div class='panel'>Máquina no encontrada.</div>"; return; }
+  const nombre = `${m.tipo === "lavadora" ? "Lavadora" : "Secadora"} ${String(m.numero).padStart(2, "0")}`;
+  const s = m.sesion;
+
+  let acciones = "";
+  if (m.estado === "disponible") {
+    acciones = `<button class="btn btn-primario" onclick="abrirIniciar(${m.id})">Iniciar ciclo</button>
+                <button class="btn btn-secundario" onclick="alternarMantenimiento(${m.id})">Marcar en mantenimiento</button>`;
+  } else if (m.estado === "en_uso") {
+    acciones = `<button class="btn btn-secundario" disabled style="opacity:0.6;">En funcionamiento — espera a que termine</button>`;
+  } else if (m.estado === "finalizado") {
+    acciones = `<button class="btn btn-whatsapp" onclick="avisarWhatsApp(${m.id})">Avisar por WhatsApp</button>
+                <button class="btn btn-liberar" onclick="liberarMaquina(${m.id})">Ropa recogida</button>`;
+  } else if (m.estado === "mantenimiento") {
+    acciones = `<button class="btn btn-primario" onclick="alternarMantenimiento(${m.id})">Quitar de mantenimiento</button>`;
+  }
+
+  cont.innerHTML = `
+    <div class="detalle-header">
+      <div class="titulo-detalle">${iconoTipo(m.tipo)} ${nombre} <span class="badge-estado ${m.estado}">${NOMBRES_ESTADO[m.estado]}</span></div>
+      <button class="btn-volver" onclick="volverDeDetalle()">← Volver</button>
+    </div>
+    <div class="dos-columnas">
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:0.9rem;">Información general</h3>
+        <div class="info-linea"><span>Tipo</span><span>${m.tipo === "lavadora" ? "Lavadora" : "Secadora"}</span></div>
+        <div class="info-linea"><span>Estado</span><span>${NOMBRES_ESTADO[m.estado]}</span></div>
+        ${s ? `
+          <div class="info-linea"><span>Cliente</span><span>${s.cliente_nombre}</span></div>
+          <div class="info-linea"><span>Teléfono</span><span>${s.cliente_telefono || "No registrado"}</span></div>
+          <div class="info-linea"><span>Duración del ciclo</span><span>${s.duracion_minutos} min</span></div>
+          ${m.estado === "en_uso" ? `<div class="info-linea"><span>Tiempo restante</span><span data-fin-detalle="${s.hora_fin_estimada}">${formatearRestante(s.hora_fin_estimada)}</span></div>` : ""}
+        ` : `<div class="info-linea"><span>Cliente</span><span>—</span></div>`}
+        <div class="fila-botones">${acciones}</div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:0.9rem;">Historial de ciclos</h3>
+        <div id="historial-tabla">Cargando…</div>
+      </div>
+    </div>
+  `;
+  cargarHistorial(m.id);
+}
+
+async function cargarHistorial(maquinaId) {
+  const el = document.getElementById("historial-tabla");
+  if (!el) return;
+  try {
+    const resp = await fetch(`/api/maquinas/${maquinaId}/historial`);
+    if (!resp.ok) return;
+    const ciclos = await resp.json();
+    if (!ciclos.length) { el.innerHTML = `<div class="actividad-vacio">Esta máquina todavía no tiene ciclos registrados.</div>`; return; }
+    el.innerHTML = `<table class="tabla-historial">
+      <thead><tr><th>Fecha</th><th>Cliente</th><th>Duración</th><th>Estado</th></tr></thead>
+      <tbody>${ciclos.map(c => `
+        <tr>
+          <td>${formatearFechaHora(c.hora_inicio)}</td>
+          <td>${c.cliente_nombre}</td>
+          <td>${c.duracion_minutos} min</td>
+          <td>${c.completado ? '<span class="chip-completado">Completado</span>' : '<span class="chip-en-curso">En curso</span>'}</td>
+        </tr>`).join("")}</tbody>
+    </table>`;
+  } catch (e) { /* silencioso */ }
+}
+
+function volverDeDetalle() {
+  const m = maquinasCache.find(x => x.id === maquinaDetalleId);
+  irAVista(m && m.tipo === "secadora" ? "secadoras" : "lavadoras");
+}
+
+// ---------- Vista: Reportes ----------
+async function renderReportes(cont) {
+  cont.innerHTML = `<div class="panel">Cargando reportes…</div>`;
+  try {
+    const resp = await fetch("/api/reportes");
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const conteos = { disponible: 0, en_uso: 0, finalizado: 0, mantenimiento: 0 };
+    data.maquinas.forEach(m => conteos[m.estado]++);
+
+    const maxUso = Math.max(1, ...data.uso_por_hora_hoy);
+    const barras = data.uso_por_hora_hoy.map(v => `<div class="barra" style="height:${(v/maxUso*100) || 2}%;" title="${v} ciclo(s)"></div>`).join("");
+
+    cont.innerHTML = `
+      <div class="tarjetas-resumen">
+        <div class="tr-card"><span class="icono">🔄</span><div><div class="num">${data.ciclos_iniciados_hoy}</div><div class="lbl">Ciclos iniciados hoy</div></div></div>
+        <div class="tr-card"><span class="icono">🫧</span><div><div class="num">${data.promedio_duracion_lavadora ?? "—"}</div><div class="lbl">Prom. min · lavadora</div></div></div>
+        <div class="tr-card"><span class="icono">🌀</span><div><div class="num">${data.promedio_duracion_secadora ?? "—"}</div><div class="lbl">Prom. min · secadora</div></div></div>
+      </div>
+      <div class="dos-columnas">
+        <div class="panel">
+          <div class="panel-header"><h3>Máquinas por estado</h3></div>
+          ${donaEstados(conteos)}
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Ciclos iniciados por hora — hoy</h3></div>
+          <div class="barras">${barras}</div>
+          <div class="barras-ejes"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h3>Actividad reciente</h3></div>
+        <div id="actividad-reportes">Cargando…</div>
+      </div>
+    `;
+    cargarActividadEnVista("actividad-reportes");
+  } catch (e) { cont.innerHTML = `<div class="panel">No se pudo cargar el reporte.</div>`; }
+}
+
+// ---------- Vista: Usuarios ----------
+async function renderUsuarios(cont) {
+  cont.innerHTML = `<div class="panel">Cargando usuarios…</div>`;
+  const resp = await fetch("/api/usuarios");
+  if (!resp.ok) { cont.innerHTML = `<div class="panel">No tienes acceso a esta sección.</div>`; return; }
+  const usuarios = await resp.json();
+
+  cont.innerHTML = `
+    <div class="panel">
+      <div class="panel-header"><h3>Usuarios con acceso</h3></div>
+      <div id="lista-usuarios">${usuarios.map(u => `
+        <div class="info-linea">
+          <span>${u.nombre} <span style="color:var(--muted); font-size:0.75rem;">(${u.username} · ${u.rol === "dueno" ? "Dueño" : "Personal"})</span></span>
+          ${u.id !== miUsuario.id ? `<span class="btn-peligro-texto" onclick="eliminarUsuario(${u.id})">Quitar</span>` : `<span style="color:var(--muted); font-size:0.78rem;">Tú</span>`}
+        </div>`).join("")}</div>
+    </div>
+    <div class="panel form-config">
+      <div class="panel-header"><h3>Agregar usuario</h3></div>
+      <div class="campo"><label>Nombre</label><input type="text" id="nu-nombre" placeholder="Ej: Carlos (turno tarde)"></div>
+      <div class="campo"><label>Usuario</label><input type="text" id="nu-username" placeholder="Ej: carlos"></div>
+      <div class="campo"><label>Contraseña</label><input type="text" id="nu-password" placeholder="Contraseña temporal"></div>
+      <div class="campo"><label>Rol</label>
+        <select id="nu-rol"><option value="personal">Personal</option><option value="dueno">Dueño</option></select>
+      </div>
+      <button class="btn btn-primario" onclick="crearUsuario()">Agregar usuario</button>
+    </div>
+  `;
 }
 
 async function crearUsuario() {
@@ -617,50 +648,153 @@ async function crearUsuario() {
   const username = document.getElementById("nu-username").value.trim();
   const password = document.getElementById("nu-password").value;
   const rol = document.getElementById("nu-rol").value;
-
-  if (!nombre || !username || !password) {
-    alert("Completa todos los campos.");
-    return;
-  }
-  const resp = await fetch("/api/usuarios", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nombre, username, password, rol }),
-  });
-  if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    alert(data.detail || "No se pudo crear el usuario.");
-    return;
-  }
-  document.getElementById("nu-nombre").value = "";
-  document.getElementById("nu-username").value = "";
-  document.getElementById("nu-password").value = "";
-  await cargarListaUsuarios();
+  if (!nombre || !username || !password) { alert("Completa todos los campos."); return; }
+  const resp = await fetch("/api/usuarios", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre, username, password, rol }) });
+  if (!resp.ok) { const d = await resp.json().catch(() => ({})); alert(d.detail || "No se pudo crear el usuario."); return; }
+  irAVista("usuarios");
 }
 
 async function eliminarUsuario(id) {
   if (!confirm("¿Quitar el acceso a este usuario?")) return;
   await fetch(`/api/usuarios/${id}`, { method: "DELETE" });
-  await cargarListaUsuarios();
+  irAVista("usuarios");
 }
+
+// ---------- Vista: Configuración ----------
+async function renderConfiguracion(cont) {
+  cont.innerHTML = `<div class="panel">Cargando configuración…</div>`;
+  const resp = await fetch("/api/configuracion");
+  if (!resp.ok) { cont.innerHTML = `<div class="panel">No tienes acceso a esta sección.</div>`; return; }
+  const config = await resp.json();
+  cont.innerHTML = `
+    <div class="panel form-config">
+      <div class="panel-header"><h3>Configuración general</h3></div>
+      <div class="campo"><label>Nombre del negocio</label><input type="text" id="cfg-nombre" value="${config.nombre_negocio}"></div>
+      <div class="campo"><label>Duración por defecto — Lavadoras (min)</label><input type="number" id="cfg-lavadora" value="${config.duracion_default_lavadora}"></div>
+      <div class="campo"><label>Duración por defecto — Secadoras (min)</label><input type="number" id="cfg-secadora" value="${config.duracion_default_secadora}"></div>
+      <button class="btn btn-primario" onclick="guardarConfiguracion()">Guardar cambios</button>
+    </div>
+  `;
+}
+
+async function guardarConfiguracion() {
+  const body = {
+    nombre_negocio: document.getElementById("cfg-nombre").value,
+    duracion_default_lavadora: parseInt(document.getElementById("cfg-lavadora").value, 10),
+    duracion_default_secadora: parseInt(document.getElementById("cfg-secadora").value, 10),
+  };
+  const resp = await fetch("/api/configuracion", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (resp.ok) {
+    document.getElementById("nombre-negocio-sub").textContent = body.nombre_negocio;
+    alert("Configuración guardada.");
+  } else {
+    alert("No se pudo guardar.");
+  }
+}
+
+// ---------- Modal iniciar ciclo ----------
+let maquinaParaIniciar = null;
+function abrirIniciar(id) {
+  maquinaParaIniciar = maquinasCache.find(m => m.id === id);
+  document.getElementById("titulo-iniciar").textContent = `${maquinaParaIniciar.tipo === "lavadora" ? "Lavadora" : "Secadora"} ${maquinaParaIniciar.numero}`;
+  document.getElementById("input-nombre").value = "";
+  document.getElementById("input-telefono").value = "";
+  document.getElementById("input-duracion").value = "";
+  document.getElementById("overlay-iniciar").classList.add("show");
+}
+function cerrarModal() { document.getElementById("overlay-iniciar").classList.remove("show"); maquinaParaIniciar = null; }
+
+async function confirmarInicio() {
+  const nombre = document.getElementById("input-nombre").value.trim();
+  const telefono = document.getElementById("input-telefono").value.trim();
+  const duracion = parseInt(document.getElementById("input-duracion").value, 10);
+  if (!nombre) { alert("Por favor ingresa el nombre del cliente."); return; }
+  await fetch(`/api/maquinas/${maquinaParaIniciar.id}/iniciar`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cliente_nombre: nombre, cliente_telefono: telefono || null, duracion_minutos: duracion || null }),
+  });
+  cerrarModal();
+}
+
+async function liberarMaquina(id) {
+  await fetch(`/api/maquinas/${id}/liberar`, { method: "POST" });
+}
+
+async function alternarMantenimiento(id) {
+  await fetch(`/api/maquinas/${id}/mantenimiento`, { method: "POST" });
+}
+
+function formatearNumeroPeru(telefono) {
+  let limpio = telefono.replace(/[^0-9]/g, "");
+  if (limpio.length === 9) limpio = "51" + limpio;
+  return limpio;
+}
+
+async function avisarWhatsApp(id) {
+  const m = maquinasCache.find(x => x.id === id);
+  const s = m.sesion;
+  let telefono = s.cliente_telefono;
+  if (!telefono) {
+    telefono = prompt("No hay teléfono registrado para este cliente.\nIngresa el número de WhatsApp:");
+    if (!telefono) return;
+    await fetch(`/api/maquinas/${id}/telefono`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ telefono }) });
+  }
+  const numero = formatearNumeroPeru(telefono);
+  const nombreMaquina = `${m.tipo === "lavadora" ? "lavadora" : "secadora"} ${m.numero}`;
+  const mensaje = `Hola ${s.cliente_nombre}, tu ropa en la ${nombreMaquina} ya está lista. Puedes pasar a recogerla cuando gustes. ¡Gracias por tu preferencia!`;
+  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
+}
+
+// ---------- Alerta sonora ----------
+let estadosAnteriores = {};
+let audioCtx = null;
+function reproducirAlerta() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ahora = audioCtx.currentTime;
+    [0, 0.18].forEach(retraso => {
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.type = "sine"; osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.001, ahora + retraso);
+      gain.gain.exponentialRampToValueAtTime(0.25, ahora + retraso + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ahora + retraso + 0.35);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(ahora + retraso); osc.stop(ahora + retraso + 0.4);
+    });
+  } catch (e) {}
+}
+function detectarNuevosFinalizados(maquinas) {
+  let hayNuevo = false;
+  maquinas.forEach(m => {
+    const anterior = estadosAnteriores[m.id];
+    if (m.estado === "finalizado" && anterior && anterior !== "finalizado") hayNuevo = true;
+    estadosAnteriores[m.id] = m.estado;
+  });
+  if (hayNuevo) reproducirAlerta();
+}
+
+// ---------- Usuario / sesión ----------
+async function cargarUsuarioActual() {
+  const resp = await fetch("/api/me");
+  if (resp.status === 401) { window.location.href = "/login"; return; }
+  miUsuario = await resp.json();
+  document.getElementById("usuario-info").textContent = miUsuario.nombre;
+  if (miUsuario.rol === "dueno") {
+    document.getElementById("nav-usuarios").style.display = "flex";
+    document.getElementById("nav-config").style.display = "flex";
+  }
+}
+async function cerrarSesion() { await fetch("/api/logout", { method: "POST" }); window.location.href = "/login"; }
 
 // ---------- WebSocket ----------
 function conectarWS() {
   const protocolo = window.location.protocol === "https:" ? "wss" : "ws";
   const ws = new WebSocket(`${protocolo}://${window.location.host}/ws`);
   const badge = document.getElementById("conexion");
-
-  ws.onopen = () => {
-    badge.textContent = "En vivo";
-    badge.className = "estado-conexion ok";
-  };
+  ws.onopen = () => { badge.textContent = "En vivo"; badge.className = "estado-conexion"; };
   ws.onclose = (event) => {
-    if (event.code === 4401) {
-      window.location.href = "/login";
-      return;
-    }
-    badge.textContent = "Reconectando…";
-    badge.className = "estado-conexion mal";
+    if (event.code === 4401) { window.location.href = "/login"; return; }
+    badge.textContent = "Reconectando…"; badge.className = "estado-conexion mal";
     setTimeout(conectarWS, 2000);
   };
   ws.onmessage = (event) => {
@@ -673,21 +807,16 @@ function conectarWS() {
   };
 }
 
-// Actualiza contadores y anillos de progreso cada segundo sin esperar al servidor
 setInterval(() => {
-  document.querySelectorAll(".tiempo-restante[data-fin]").forEach(el => {
-    el.textContent = formatearRestante(el.getAttribute("data-fin"));
-  });
-  document.querySelectorAll(".maquina.en_uso .progreso").forEach((circulo, i) => {
-    // recalcular solo para las máquinas en uso, en el mismo orden en que se dibujaron
-  });
-  // Repintar anillos de progreso de las máquinas en uso (más simple y consistente que indexar)
-  const enUso = maquinasCache.filter(m => m.estado === "en_uso");
-  if (enUso.length) render();
+  document.querySelectorAll(".tiempo-restante[data-fin]").forEach(el => { el.textContent = formatearRestante(el.getAttribute("data-fin")); });
+  document.querySelectorAll("[data-fin-detalle]").forEach(el => { el.textContent = formatearRestante(el.getAttribute("data-fin-detalle")); });
+  if (maquinasCache.some(m => m.estado === "en_uso")) render();
 }, 1000);
 
-cargarUsuarioActual();
-conectarWS();
+(async function iniciar() {
+  await cargarUsuarioActual();
+  conectarWS();
+})();
 </script>
 </body>
 </html>

@@ -76,6 +76,8 @@ class CicloSesion(Base):
     duracion_minutos = Column(Integer, nullable=False)
     hora_inicio = Column(DateTime, default=datetime.utcnow)
     hora_fin_estimada = Column(DateTime, nullable=False)
+    hora_finalizado = Column(DateTime, nullable=True)   # cuándo el ciclo realmente terminó (lo detectó el monitor)
+    hora_recogido = Column(DateTime, nullable=True)     # cuándo el cliente recogió la ropa (máquina liberada)
     recogido = Column(Integer, default=0)  # 0 = no recogido, 1 = recogido (libera máquina)
 
     maquina = relationship("Maquina", back_populates="ciclos")
@@ -88,6 +90,34 @@ class CicloSesion(Base):
             "duracion_minutos": self.duracion_minutos,
             "hora_inicio": self.hora_inicio.isoformat(),
             "hora_fin_estimada": self.hora_fin_estimada.isoformat(),
+        }
+
+    def to_dict_historial(self):
+        return {
+            "id": self.id,
+            "cliente_nombre": self.cliente_nombre,
+            "duracion_minutos": self.duracion_minutos,
+            "hora_inicio": self.hora_inicio.isoformat(),
+            "hora_finalizado": self.hora_finalizado.isoformat() if self.hora_finalizado else None,
+            "hora_recogido": self.hora_recogido.isoformat() if self.hora_recogido else None,
+            "completado": self.hora_finalizado is not None,
+        }
+
+
+class Configuracion(Base):
+    """Fila única con parámetros ajustables del sistema (dueño los edita desde 'Configuración')."""
+    __tablename__ = "configuracion"
+
+    id = Column(Integer, primary_key=True, default=1)
+    duracion_default_lavadora = Column(Integer, default=35)
+    duracion_default_secadora = Column(Integer, default=45)
+    nombre_negocio = Column(String, default="Control de Lavandería")
+
+    def to_dict(self):
+        return {
+            "duracion_default_lavadora": self.duracion_default_lavadora,
+            "duracion_default_secadora": self.duracion_default_secadora,
+            "nombre_negocio": self.nombre_negocio,
         }
 
 

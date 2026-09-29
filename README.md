@@ -4,18 +4,37 @@ MVP funcional: control manual de inicio de ciclo (sin sensores todavía),
 con actualización en tiempo real en pantalla y cambio automático de estado
 cuando el ciclo termina.
 
-## Qué incluye este MVP
+## Qué incluye este sistema
 
-- Grid visual de las 19 lavadoras y 19 secadoras.
+- **Menú lateral** con Inicio, Lavadoras, Secadoras, Reportes, Usuarios y
+  Configuración (estas dos últimas solo visibles para el rol Dueño).
+- **Inicio**: tarjetas de resumen (disponibles / en uso / terminadas /
+  mantenimiento), vista previa de máquinas, gráfico de "máquinas por estado"
+  y actividad reciente — todo con datos reales del sistema.
+- **Lavadoras / Secadoras**: grid completo de las 19 máquinas de cada tipo,
+  con buscador por número y filtro por estado.
+- **Detalle de máquina**: información del ciclo activo (cliente, teléfono,
+  duración, tiempo restante) y el **historial real de ciclos anteriores**
+  de esa máquina (fecha, cliente, duración, si se completó o no).
+- **Reportes**: ciclos iniciados hoy, duración promedio real por tipo de
+  máquina (calculada de los ciclos ya completados), gráfico de ciclos
+  iniciados por hora, y actividad reciente completa.
+- **Configuración** (solo Dueño): nombre del negocio y duración por defecto
+  de los ciclos de lavadoras/secadoras.
 - Al hacer clic en una máquina disponible: se asigna el nombre del cliente
   (y teléfono opcional) y se inicia el temporizador del ciclo.
 - El estado se actualiza **en tiempo real** en todas las pantallas conectadas
   (computadora y celular) usando WebSockets — no hace falta refrescar.
 - Cuando el tiempo del ciclo se cumple, el sistema cambia **automáticamente**
-  el estado de la máquina a "Ciclo terminado" (color rojo), sin intervención
-  del personal.
+  el estado de la máquina a "Ciclo terminado", sin intervención del personal.
 - Botón "Ropa recogida" para liberar la máquina y dejarla disponible de nuevo.
 - Botón para marcar una máquina en mantenimiento (fuera de servicio).
+
+**Nota sobre los datos mostrados:** todo lo que ves en pantalla (duración,
+historial, promedios) es información real generada por el uso del sistema.
+No se muestran datos de temperatura, presión ni corriente eléctrica, porque
+esos requieren sensores físicos instalados en cada máquina — algo fuera del
+alcance de esta versión (ver sección de próximas fases).
 
 - **Alerta sonora** en el dashboard cuando una máquina termina su ciclo (útil
   si el personal no está mirando la pantalla en ese momento). Es un sonido

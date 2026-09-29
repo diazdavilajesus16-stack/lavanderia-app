@@ -9,44 +9,75 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #EFF2EF;
+    --sidebar: #0F1E33;
+    --bg: #F1F3F6;
     --surface: #FFFFFF;
     --ink: #1B2430;
     --muted: #5B6B73;
-    --line: #DDE3E0;
+    --line: #E2E6EA;
     --en-uso: #2B6CB0;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; min-height: 100%;
-    background: var(--bg);
-    color: var(--ink);
     font-family: "Inter", -apple-system, sans-serif;
+    color: var(--ink);
+  }
+  body {
+    display: flex; min-height: 100vh;
+  }
+
+  /* ---------- Panel de marca (izquierda, oculto en móvil) ---------- */
+  .panel-marca {
+    flex: 1.1;
+    background: linear-gradient(160deg, var(--sidebar) 0%, #16283F 60%, #1B3A5C 100%);
+    color: white;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel-marca::before {
+    content: "🫧"; position: absolute; font-size: 14rem; opacity: 0.06;
+    right: -30px; bottom: -40px; transform: rotate(-12deg);
+  }
+  .panel-marca h1 { font-family: "Outfit", sans-serif; font-size: 2rem; margin: 0 0 10px; line-height: 1.15; }
+  .panel-marca .destacado { color: #74C0FC; }
+  .panel-marca p { color: #9DA9B3; font-size: 0.95rem; max-width: 380px; margin-bottom: 30px; }
+  .lista-features { display: flex; flex-direction: column; gap: 14px; }
+  .lista-features .f { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; color: #C7D2DD; }
+  .lista-features .f .ico {
+    width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
+  }
+
+  @media (max-width: 820px) { .panel-marca { display: none; } }
+
+  /* ---------- Panel de login (derecha) ---------- */
+  .panel-login {
+    flex: 1; background: var(--bg);
     display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    padding: 24px;
   }
   .tarjeta {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 16px;
-    padding: 32px 28px;
-    width: 100%;
-    max-width: 360px;
+    padding: 36px 32px;
+    width: 100%; max-width: 380px;
   }
-  .logo { text-align: center; font-size: 2rem; margin-bottom: 6px; }
-  h1 {
-    font-family: "Outfit", sans-serif;
-    font-size: 1.2rem; text-align: center; margin: 0 0 4px;
-  }
-  .subtitulo { text-align: center; font-size: 0.82rem; color: var(--muted); margin-bottom: 24px; }
+  .logo-movil { display: none; text-align: center; font-size: 2rem; margin-bottom: 10px; }
+  @media (max-width: 820px) { .logo-movil { display: block; } }
+
+  h2 { font-family: "Outfit", sans-serif; font-size: 1.25rem; margin: 0 0 4px; }
+  .subtitulo { font-size: 0.84rem; color: var(--muted); margin-bottom: 26px; }
 
   .campo { margin-bottom: 14px; }
   .campo label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; }
   .campo input {
     width: 100%; padding: 11px 12px;
     border: 1px solid var(--line); border-radius: 10px;
-    font-size: 0.92rem; font-family: inherit;
-    background: var(--bg);
+    font-size: 0.92rem; font-family: inherit; background: var(--bg);
   }
   .campo input:focus { outline: 2px solid var(--en-uso); outline-offset: 1px; }
 
@@ -65,28 +96,43 @@
     display: none;
   }
   .error.show { display: block; }
+
+  .pie-tarjeta { text-align: center; font-size: 0.76rem; color: var(--muted); margin-top: 22px; }
 </style>
 </head>
 <body>
 
-<div class="tarjeta">
-  <div class="logo">🧺</div>
-  <h1>Control de Lavandería</h1>
-  <div class="subtitulo">Ingresa para ver el estado de las máquinas</div>
+<div class="panel-marca">
+  <h1>Control de <span class="destacado">Lavandería</span></h1>
+  <p>Monitorea en tiempo real el estado de tus 19 lavadoras y 19 secadoras, desde la computadora o el celular.</p>
+  <div class="lista-features">
+    <div class="f"><span class="ico">🫧</span> 19 lavadoras y 19 secadoras</div>
+    <div class="f"><span class="ico">📡</span> Monitoreo en tiempo real</div>
+    <div class="f"><span class="ico">💬</span> Aviso al cliente por WhatsApp</div>
+  </div>
+</div>
 
-  <div class="error" id="error"></div>
+<div class="panel-login">
+  <div class="tarjeta">
+    <div class="logo-movil">🧺</div>
+    <h2>Bienvenido de vuelta</h2>
+    <div class="subtitulo">Ingresa para ver el estado de las máquinas</div>
 
-  <form id="form-login">
-    <div class="campo">
-      <label>Usuario</label>
-      <input type="text" id="username" autocomplete="username" required>
-    </div>
-    <div class="campo">
-      <label>Contraseña</label>
-      <input type="password" id="password" autocomplete="current-password" required>
-    </div>
-    <button type="submit" id="btn-entrar">Ingresar</button>
-  </form>
+    <div class="error" id="error"></div>
+
+    <form id="form-login">
+      <div class="campo">
+        <label>Usuario</label>
+        <input type="text" id="username" autocomplete="username" required>
+      </div>
+      <div class="campo">
+        <label>Contraseña</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" id="btn-entrar">Ingresar</button>
+    </form>
+    <div class="pie-tarjeta">Sistema de control interno — acceso restringido</div>
+  </div>
 </div>
 
 <script>
