@@ -47,22 +47,30 @@
     z-index: 50;
   }
   .sidebar .marca {
-    padding: 20px 18px 16px;
-    font-size: 1.02rem; font-weight: 600;
-    display: flex; align-items: center; gap: 10px;
+    padding: 22px 20px 18px;
+    font-size: 0.98rem; font-weight: 600;
+    display: flex; align-items: center; gap: 11px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
-  .sidebar .marca .sub { display: block; font-family: "Inter"; font-size: 0.68rem; font-weight: 400; color: #8FA0B3; }
-  .sidebar nav { flex: 1; padding: 12px 10px; }
+  .sidebar .marca .logomark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .sidebar .marca .logomark svg { width: 18px; height: 18px; color: #74C0FC; }
+  .sidebar .marca .sub { display: block; font-family: "Inter"; font-size: 0.68rem; font-weight: 400; color: #8FA0B3; margin-top: 1px; }
+  .sidebar nav { flex: 1; padding: 14px 10px; }
   .sidebar .item {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 11px;
     padding: 10px 12px; border-radius: 8px;
-    font-size: 0.86rem; color: #C7D2DD; cursor: pointer;
+    font-size: 0.85rem; color: #A8B6C4; cursor: pointer;
     margin-bottom: 2px; user-select: none;
+    transition: background .12s, color .12s;
   }
   .sidebar .item:hover { background: var(--sidebar-hover); color: white; }
   .sidebar .item.activo { background: var(--sidebar-activo); color: white; }
-  .sidebar .item .ico { font-size: 1rem; width: 20px; text-align: center; }
+  .sidebar .item .ico { width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .sidebar .item .ico svg { width: 17px; height: 17px; }
   .sidebar .pie {
     padding: 14px 18px; font-size: 0.72rem; color: #8FA0B3;
     border-top: 1px solid rgba(255,255,255,0.08);
@@ -105,16 +113,23 @@
   }
   .tr-card {
     background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    padding: 16px; display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.04);
   }
-  .tr-card .icono { font-size: 1.5rem; }
-  .tr-card .num { font-size: 1.3rem; font-weight: 700; line-height: 1; }
-  .tr-card .lbl { font-size: 0.76rem; color: var(--muted); }
+  .tr-card .icono {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .tr-card .icono svg { width: 19px; height: 19px; }
+  .tr-card .num { font-size: 1.4rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+  .tr-card .lbl { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
 
   /* ---------- Paneles / secciones ---------- */
   .panel {
     background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 16px 18px; margin-bottom: 18px;
+    padding: 18px 20px; margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.04);
   }
   .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   .panel-header h3 { font-size: 0.95rem; margin: 0; }
@@ -131,21 +146,26 @@
   }
   .maquina {
     background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 10px 8px 9px; display: flex; flex-direction: column; align-items: center; gap: 5px;
-    cursor: pointer; transition: border-color .15s;
+    padding: 12px 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer; transition: border-color .15s, box-shadow .15s;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.03);
   }
-  .maquina:hover { border-color: var(--muted); }
-  .porthole { position: relative; width: 54px; height: 54px; }
-  .porthole svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .maquina:hover { border-color: #C4CCD3; box-shadow: 0 2px 6px rgba(16,24,40,0.07); }
+  .porthole { position: relative; width: 52px; height: 52px; }
+  .porthole svg.anillo { width: 100%; height: 100%; transform: rotate(-90deg); position: absolute; inset: 0; }
   .porthole .pista { fill: none; stroke: var(--line); stroke-width: 5; }
   .porthole .progreso { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
-  .porthole .icono-centro { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .porthole .icono-centro { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+  .porthole .icono-centro svg { width: 20px; height: 20px; }
+  .maquina.disponible .icono-centro { color: var(--disponible); }
+  .maquina.en_uso .icono-centro { color: var(--en-uso); }
+  .maquina.finalizado .icono-centro { color: var(--finalizado); }
+  .maquina.mantenimiento .icono-centro { color: var(--mantenimiento); }
   .maquina.disponible .progreso { stroke: var(--disponible); }
   .maquina.en_uso .progreso { stroke: var(--en-uso); }
   .maquina.finalizado .progreso { stroke: var(--finalizado); }
   .maquina.mantenimiento .progreso { stroke: var(--mantenimiento); }
-  .maquina.finalizado .porthole { animation: respirar 1.8s ease-in-out infinite; }
-  @keyframes respirar { 0%,100% { filter: drop-shadow(0 0 0 rgba(232,89,12,0)); } 50% { filter: drop-shadow(0 0 6px rgba(232,89,12,0.45)); } }
+  .maquina.finalizado { border-color: var(--finalizado); }
 
   .num-maquina { font-size: 0.8rem; font-weight: 600; }
   .estado-txt { font-size: 0.63rem; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
@@ -163,7 +183,9 @@
     padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px;
     font-size: 0.84rem; font-family: inherit; background: var(--surface);
   }
-  .filtros input { flex: 1; min-width: 160px; }
+  .campo-busqueda { position: relative; flex: 1; min-width: 180px; }
+  .campo-busqueda svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--muted); }
+  .campo-busqueda input { width: 100%; padding-left: 34px; }
 
   /* ---------- Dona de estados ---------- */
   .dona-wrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
@@ -250,15 +272,34 @@
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <div class="marca">
-      🧺 <span>Control de Lavandería<span class="sub" id="nombre-negocio-sub">Autoservicio</span></span>
+      <span class="logomark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.2"/><path d="M8.5 6.2c-.3.7-.5 1.1-.9 1.5"/></svg></span>
+      <span>Control de Lavandería<span class="sub" id="nombre-negocio-sub">Autoservicio</span></span>
     </div>
     <nav>
-      <div class="item activo" data-vista="inicio" onclick="irAVista('inicio')"><span class="ico">🏠</span> Inicio</div>
-      <div class="item" data-vista="lavadoras" onclick="irAVista('lavadoras')"><span class="ico">🫧</span> Lavadoras</div>
-      <div class="item" data-vista="secadoras" onclick="irAVista('secadoras')"><span class="ico">🌀</span> Secadoras</div>
-      <div class="item" data-vista="reportes" onclick="irAVista('reportes')"><span class="ico">📊</span> Reportes</div>
-      <div class="item" data-vista="usuarios" id="nav-usuarios" style="display:none;" onclick="irAVista('usuarios')"><span class="ico">👤</span> Usuarios</div>
-      <div class="item" data-vista="configuracion" id="nav-config" style="display:none;" onclick="irAVista('configuracion')"><span class="ico">⚙️</span> Configuración</div>
+      <div class="item activo" data-vista="inicio" onclick="irAVista('inicio')">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H10v-5.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V20h3.5a1 1 0 0 0 1-1v-9"/></svg></span>
+        Inicio
+      </div>
+      <div class="item" data-vista="lavadoras" onclick="irAVista('lavadoras')">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M10.2 11.5a2.3 2.3 0 0 1 3.6 0"/><circle cx="7" cy="6" r=".6" fill="currentColor" stroke="none"/><circle cx="9.3" cy="6" r=".6" fill="currentColor" stroke="none"/></svg></span>
+        Lavadoras
+      </div>
+      <div class="item" data-vista="secadoras" onclick="irAVista('secadoras')">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M9.5 13a2.5 2.5 0 0 0 3.8 2.1"/><path d="M14.5 13a2.5 2.5 0 0 0-3.8-2.1"/></svg></span>
+        Secadoras
+      </div>
+      <div class="item" data-vista="reportes" onclick="irAVista('reportes')">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M11 20V4M18 20v-7"/></svg></span>
+        Reportes
+      </div>
+      <div class="item" data-vista="usuarios" id="nav-usuarios" style="display:none;" onclick="irAVista('usuarios')">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c.6-3.3 3-5 5.5-5s4.9 1.7 5.5 5"/><path d="M16 4.8c1.4.4 2.4 1.6 2.4 3.2s-1 2.8-2.4 3.2"/><path d="M17 15.2c2 .5 3.4 1.9 3.9 4.8"/></svg></span>
+        Usuarios
+      </div>
+      <div class="item" data-vista="configuracion" id="nav-config" style="display:none;" onclick="irAVista('configuracion')">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H4a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.5V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V10c.2.7.7 1.2 1.5 1.4h.2a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+        Configuración
+      </div>
     </nav>
     <div class="pie"><span class="punto"></span> Sistema en línea · v1.0</div>
   </aside>
@@ -310,7 +351,18 @@ const CIRC = 2 * Math.PI * RADIO;
 const COLORES_ESTADO = { disponible: "#2F9E44", en_uso: "#2B6CB0", finalizado: "#E8590C", mantenimiento: "#868E96" };
 const NOMBRES_ESTADO = { disponible: "Disponibles", en_uso: "En uso", finalizado: "Ciclo terminado", mantenimiento: "Mantenimiento" };
 
-function iconoTipo(tipo) { return tipo === "lavadora" ? "🫧" : "🌀"; }
+const SVG_LAVADORA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M10.2 11.5a2.3 2.3 0 0 1 3.6 0"/><circle cx="7" cy="6" r=".6" fill="currentColor" stroke="none"/><circle cx="9.3" cy="6" r=".6" fill="currentColor" stroke="none"/></svg>`;
+const SVG_SECADORA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M9.5 13a2.5 2.5 0 0 0 3.8 2.1"/><path d="M14.5 13a2.5 2.5 0 0 0-3.8-2.1"/></svg>`;
+const SVG_CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7"/></svg>`;
+const SVG_RELOJ = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>`;
+const SVG_CAMPANA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17v-5.5a6 6 0 0 1 12 0V17l1.5 2H4.5L6 17Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>`;
+const SVG_LLAVE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5a4 4 0 1 0-4.8 5.6L4 17.8V20h2.2l5.7-5.7a4 4 0 0 0 2.6-7.8Z"/></svg>`;
+const SVG_CICLO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.1-5.1M20 12a8 8 0 0 1-14.1 5.1"/><path d="M18.5 3.5V7H15M5.5 20.5V17H9"/></svg>`;
+const SVG_CHAT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.4 8.4 8.5 8.5 0 0 1-4-1L4 20l1.1-4.6a8.4 8.4 0 1 1 15.9-3.9Z"/></svg>`;
+const SVG_BUSCAR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.5-3.5"/></svg>`;
+
+function iconoTipo(tipo) { return tipo === "lavadora" ? SVG_LAVADORA : SVG_SECADORA; }
+function iconoTipoGrande(tipo) { return `<span style="width:22px; height:22px; display:inline-flex;">${iconoTipo(tipo)}</span>`; }
 
 function calcularProgreso(m) {
   if (m.estado === "en_uso" && m.sesion) {
@@ -338,7 +390,7 @@ function formatearFechaHora(iso) {
 function porthole(m) {
   const pct = calcularProgreso(m);
   const offset = CIRC * (1 - pct);
-  return `<div class="porthole"><svg viewBox="0 0 60 60">
+  return `<div class="porthole"><svg class="anillo" viewBox="0 0 60 60">
       <circle class="pista" cx="30" cy="30" r="${RADIO}"></circle>
       <circle class="progreso" cx="30" cy="30" r="${RADIO}" stroke-dasharray="${CIRC}" stroke-dashoffset="${offset}"></circle>
     </svg><div class="icono-centro">${iconoTipo(m.tipo)}</div></div>`;
@@ -399,10 +451,10 @@ function vistaInicio() {
 
   return `
     <div class="tarjetas-resumen">
-      <div class="tr-card"><span class="icono">🟢</span><div><div class="num">${conteos.disponible}</div><div class="lbl">Disponibles</div></div></div>
-      <div class="tr-card"><span class="icono">🔵</span><div><div class="num">${conteos.en_uso}</div><div class="lbl">En uso</div></div></div>
-      <div class="tr-card"><span class="icono">🟠</span><div><div class="num">${conteos.finalizado}</div><div class="lbl">Ciclo terminado</div></div></div>
-      <div class="tr-card"><span class="icono">⚪</span><div><div class="num">${conteos.mantenimiento}</div><div class="lbl">Mantenimiento</div></div></div>
+      <div class="tr-card"><span class="icono" style="background:var(--disponible-soft); color:var(--disponible);">${SVG_CHECK}</span><div><div class="num">${conteos.disponible}</div><div class="lbl">Disponibles</div></div></div>
+      <div class="tr-card"><span class="icono" style="background:var(--en-uso-soft); color:var(--en-uso);">${SVG_RELOJ}</span><div><div class="num">${conteos.en_uso}</div><div class="lbl">En uso</div></div></div>
+      <div class="tr-card"><span class="icono" style="background:var(--finalizado-soft); color:var(--finalizado);">${SVG_CAMPANA}</span><div><div class="num">${conteos.finalizado}</div><div class="lbl">Ciclo terminado</div></div></div>
+      <div class="tr-card"><span class="icono" style="background:var(--mantenimiento-soft); color:var(--mantenimiento);">${SVG_LLAVE}</span><div><div class="num">${conteos.mantenimiento}</div><div class="lbl">Mantenimiento</div></div></div>
     </div>
 
     <div class="panel">
@@ -488,7 +540,10 @@ function vistaListaMaquinas(tipo) {
     <div class="panel">
       <div class="panel-header"><h3>${titulo}</h3><span class="conteo">${conteos_de_tipo(tipo)}</span></div>
       <div class="filtros">
-        <input type="text" placeholder="Buscar por número..." value="${filtroTexto}" oninput="filtroTexto=this.value; render()">
+        <div class="campo-busqueda">
+          ${SVG_BUSCAR}
+          <input type="text" placeholder="Buscar por número..." value="${filtroTexto}" oninput="filtroTexto=this.value; render()">
+        </div>
         <select onchange="filtroEstado=this.value; render()">
           <option value="">Todos los estados</option>
           <option value="disponible" ${filtroEstado==="disponible"?"selected":""}>Disponible</option>
@@ -516,7 +571,7 @@ function renderDetalle(cont) {
   } else if (m.estado === "en_uso") {
     acciones = `<button class="btn btn-secundario" disabled style="opacity:0.6;">En funcionamiento — espera a que termine</button>`;
   } else if (m.estado === "finalizado") {
-    acciones = `<button class="btn btn-whatsapp" onclick="avisarWhatsApp(${m.id})">Avisar por WhatsApp</button>
+    acciones = `<button class="btn btn-whatsapp" onclick="avisarWhatsApp(${m.id})"><span style="width:15px; height:15px; display:inline-flex; vertical-align:-3px; margin-right:5px;">${SVG_CHAT}</span>Avisar por WhatsApp</button>
                 <button class="btn btn-liberar" onclick="liberarMaquina(${m.id})">Ropa recogida</button>`;
   } else if (m.estado === "mantenimiento") {
     acciones = `<button class="btn btn-primario" onclick="alternarMantenimiento(${m.id})">Quitar de mantenimiento</button>`;
@@ -524,7 +579,7 @@ function renderDetalle(cont) {
 
   cont.innerHTML = `
     <div class="detalle-header">
-      <div class="titulo-detalle">${iconoTipo(m.tipo)} ${nombre} <span class="badge-estado ${m.estado}">${NOMBRES_ESTADO[m.estado]}</span></div>
+      <div class="titulo-detalle"><span style="color:var(--muted); display:flex;">${iconoTipoGrande(m.tipo)}</span>${nombre} <span class="badge-estado ${m.estado}">${NOMBRES_ESTADO[m.estado]}</span></div>
       <button class="btn-volver" onclick="volverDeDetalle()">← Volver</button>
     </div>
     <div class="dos-columnas">
@@ -590,9 +645,9 @@ async function renderReportes(cont) {
 
     cont.innerHTML = `
       <div class="tarjetas-resumen">
-        <div class="tr-card"><span class="icono">🔄</span><div><div class="num">${data.ciclos_iniciados_hoy}</div><div class="lbl">Ciclos iniciados hoy</div></div></div>
-        <div class="tr-card"><span class="icono">🫧</span><div><div class="num">${data.promedio_duracion_lavadora ?? "—"}</div><div class="lbl">Prom. min · lavadora</div></div></div>
-        <div class="tr-card"><span class="icono">🌀</span><div><div class="num">${data.promedio_duracion_secadora ?? "—"}</div><div class="lbl">Prom. min · secadora</div></div></div>
+        <div class="tr-card"><span class="icono" style="background:var(--en-uso-soft); color:var(--en-uso);">${SVG_CICLO}</span><div><div class="num">${data.ciclos_iniciados_hoy}</div><div class="lbl">Ciclos iniciados hoy</div></div></div>
+        <div class="tr-card"><span class="icono" style="background:var(--disponible-soft); color:var(--disponible);">${SVG_LAVADORA}</span><div><div class="num">${data.promedio_duracion_lavadora ?? "—"}</div><div class="lbl">Prom. min · lavadora</div></div></div>
+        <div class="tr-card"><span class="icono" style="background:var(--mantenimiento-soft); color:var(--mantenimiento);">${SVG_SECADORA}</span><div><div class="num">${data.promedio_duracion_secadora ?? "—"}</div><div class="lbl">Prom. min · secadora</div></div></div>
       </div>
       <div class="dos-columnas">
         <div class="panel">
